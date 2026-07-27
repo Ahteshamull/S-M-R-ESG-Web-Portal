@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, Leaf, ShieldCheck, Users } from "lucide-react";
+import { ArrowRight, Leaf, ShieldCheck, Users } from "lucide-react";
 
 export default function Home() {
   return (

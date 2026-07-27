@@ -4,6 +4,15 @@ import { useState } from "react";
 import { Cloud, Factory, Truck, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+
+const data = [
+  { name: '2019', scope1: 240, scope2: 700, target: 1000 },
+  { name: '2020', scope1: 220, scope2: 680, target: 950 },
+  { name: '2021', scope1: 230, scope2: 690, target: 900 },
+  { name: '2022', scope1: 215, scope2: 650, target: 850 },
+  { name: '2023', scope1: 210, scope2: 630, target: 800 },
+];
 
 export default function CarbonPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -67,9 +76,28 @@ export default function CarbonPage() {
         </div>
       </div>
 
-      <div className="glass-card rounded-xl p-6 h-96 flex flex-col justify-center items-center border border-border">
-        <h3 className="text-lg font-medium mb-2">Emission Trends & Targets</h3>
-        <p className="text-muted-foreground text-sm">Detailed charts will be implemented in the next iteration.</p>
+      <div className="glass-card rounded-xl p-6 h-96 flex flex-col border border-border">
+        <h3 className="text-lg font-semibold mb-6">Emission Trends & Targets</h3>
+        <div className="flex-1 w-full min-h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={data}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                itemStyle={{ color: '#1f2937', fontWeight: 500 }}
+              />
+              <Legend verticalAlign="top" height={36} />
+              <Line type="monotone" dataKey="scope1" name="Scope 1" stroke="#4b5563" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="scope2" name="Scope 2" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="target" name="Reduction Target" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Calculate Emissions">

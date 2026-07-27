@@ -4,6 +4,16 @@ import { useState } from "react";
 import { Droplets, CloudRain, RotateCcw, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+
+const data = [
+  { name: 'Jan', consumed: 4000, production: 2400 },
+  { name: 'Feb', consumed: 3000, production: 1398 },
+  { name: 'Mar', consumed: 2000, production: 9800 },
+  { name: 'Apr', consumed: 2780, production: 3908 },
+  { name: 'May', consumed: 1890, production: 4800 },
+  { name: 'Jun', consumed: 2390, production: 3800 },
+];
 
 export default function WaterPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -67,9 +77,29 @@ export default function WaterPage() {
         </div>
       </div>
 
-      <div className="glass-card rounded-xl p-6 h-96 flex flex-col justify-center items-center border border-border">
-        <h3 className="text-lg font-medium mb-2">Water Consumption vs Production</h3>
-        <p className="text-muted-foreground text-sm">Detailed charts will be implemented in the next iteration.</p>
+      <div className="glass-card rounded-xl p-6 h-96 flex flex-col border border-border">
+        <h3 className="text-lg font-semibold mb-6">Water Consumption vs Production</h3>
+        <div className="flex-1 w-full min-h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="left" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="right" orientation="right" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                itemStyle={{ color: '#1f2937', fontWeight: 500 }}
+                cursor={{ fill: 'transparent' }}
+              />
+              <Legend verticalAlign="top" height={36} />
+              <Bar yAxisId="left" dataKey="consumed" name="Water Consumed (L)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Bar yAxisId="right" dataKey="production" name="Production Output (Units)" fill="#14b8a6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Water Usage">

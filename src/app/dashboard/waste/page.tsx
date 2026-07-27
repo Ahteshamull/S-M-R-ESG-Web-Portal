@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Recycle, AlertTriangle, ArrowDownRight, Plus } from "lucide-react";
+import { Trash2, Recycle, AlertTriangle, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+
+const data = [
+  { name: 'General Waste', value: 4200 },
+  { name: 'Recycled Waste', value: 2800 },
+  { name: 'Hazardous Waste', value: 120 },
+];
+const COLORS = ['#a8a29e', '#4ade80', '#ef4444'];
 
 export default function WastePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -67,9 +75,33 @@ export default function WastePage() {
         </div>
       </div>
 
-      <div className="glass-card rounded-xl p-6 h-96 flex flex-col justify-center items-center border border-border">
-        <h3 className="text-lg font-medium mb-2">Waste Generation Trends</h3>
-        <p className="text-muted-foreground text-sm">Detailed charts will be implemented in the next iteration.</p>
+      <div className="glass-card rounded-xl p-6 h-96 flex flex-col border border-border">
+        <h3 className="text-lg font-semibold mb-6">Waste Generation Trends</h3>
+        <div className="flex-1 w-full min-h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={80}
+                outerRadius={120}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                itemStyle={{ color: '#1f2937', fontWeight: 500 }}
+                formatter={(value) => `${value} kg`}
+              />
+              <Legend verticalAlign="bottom" height={36} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Record Waste Disposal">

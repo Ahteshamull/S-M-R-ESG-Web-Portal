@@ -4,6 +4,16 @@ import { useState } from "react";
 import { Zap, Activity, Battery, ArrowDownRight, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+
+const data = [
+  { name: 'Jan', electricity: 4000, gas: 2400 },
+  { name: 'Feb', electricity: 3000, gas: 1398 },
+  { name: 'Mar', electricity: 2000, gas: 9800 },
+  { name: 'Apr', electricity: 2780, gas: 3908 },
+  { name: 'May', electricity: 1890, gas: 4800 },
+  { name: 'Jun', electricity: 2390, gas: 3800 },
+];
 
 export default function EnergyPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,9 +94,37 @@ export default function EnergyPage() {
         </div>
       </div>
 
-      <div className="glass-card rounded-xl p-6 h-96 flex flex-col justify-center items-center border border-border">
-        <h3 className="text-lg font-medium mb-2">Energy Intensity Trends</h3>
-        <p className="text-muted-foreground text-sm">Detailed charts will be implemented in the next iteration.</p>
+      <div className="glass-card rounded-xl p-6 h-96 flex flex-col border border-border">
+        <h3 className="text-lg font-semibold mb-6">Energy Intensity Trends</h3>
+        <div className="flex-1 w-full min-h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={data}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorElectricity" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorGas" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                itemStyle={{ color: '#1f2937', fontWeight: 500 }}
+              />
+              <Legend verticalAlign="top" height={36} />
+              <Area type="monotone" dataKey="electricity" name="Electricity (kWh)" stroke="#10b981" fillOpacity={1} fill="url(#colorElectricity)" />
+              <Area type="monotone" dataKey="gas" name="Gas (m³)" stroke="#f59e0b" fillOpacity={1} fill="url(#colorGas)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Daily Energy">
