@@ -7,6 +7,20 @@ import {
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
+} from "recharts";
+
+const esgTrendsData = [
+  { month: 'Jan', energy: 42, water: 65, carbon: 82 },
+  { month: 'Feb', energy: 38, water: 60, carbon: 78 },
+  { month: 'Mar', energy: 48, water: 75, carbon: 88 },
+  { month: 'Apr', energy: 40, water: 55, carbon: 70 },
+  { month: 'May', energy: 43, water: 62, carbon: 75 },
+  { month: 'Jun', energy: 46, water: 70, carbon: 85 },
+  { month: 'Jul', energy: 45, water: 68, carbon: 80 },
+];
+
 export default function DashboardOverview() {
   const router = useRouter();
 
@@ -124,7 +138,7 @@ export default function DashboardOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Chart Area */}
-        <div className="lg:col-span-2 glass-card rounded-xl p-6">
+        <div className="lg:col-span-2 glass-card rounded-xl p-6 flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-semibold text-lg">Monthly ESG Trends</h3>
             <select className="bg-muted border-none text-sm rounded-md py-1 px-2">
@@ -132,9 +146,38 @@ export default function DashboardOverview() {
               <option>Last Year</option>
             </select>
           </div>
-          <div className="h-72 w-full flex items-center justify-center border-2 border-dashed border-border rounded-lg bg-muted/20">
-            {/* Recharts goes here - Placeholder for now */}
-            <p className="text-muted-foreground text-sm font-medium">Chart visualization (Recharts) will render here</p>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={esgTrendsData}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="colorEnergy" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#eab308" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#eab308" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorWater" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorCarbon" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#9ca3af" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#9ca3af" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                  labelStyle={{ fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}
+                />
+                <Area type="monotone" dataKey="carbon" name="Carbon (tCO2e)" stroke="#9ca3af" strokeWidth={2} fillOpacity={1} fill="url(#colorCarbon)" />
+                <Area type="monotone" dataKey="water" name="Water (kL)" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorWater)" />
+                <Area type="monotone" dataKey="energy" name="Energy (MWh)" stroke="#eab308" strokeWidth={2} fillOpacity={1} fill="url(#colorEnergy)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
