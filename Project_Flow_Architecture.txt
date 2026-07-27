@@ -1,0 +1,90 @@
+S-M-R ESG Portal: Project Flow & Backend Architecture
+=====================================================
+
+এই ডকুমেন্টে S-M-R ESG ওয়েব পোর্টালটি কীভাবে কাজ করবে এবং ফ্রন্টএন্ডের প্রতিটি পেজের সাথে ব্যাকএন্ড লজিক (API ও Database) কীভাবে যুক্ত থাকবে তার বিস্তারিত রূপরেখা দেওয়া হলো।
+
+-----------------------------------------------------
+1. System Architecture
+-----------------------------------------------------
+- Frontend: Next.js App
+- Backend: Node.js / Express.js
+- Database: MongoDB
+- Storage: Cloud Storage AWS S3
+
+Frontend <--> REST API (JSON) + JWT <--> Backend <--> Mongoose Queries <--> Database
+Frontend <--> Multipart form-data <--> Storage
+
+-----------------------------------------------------
+2. Frontend to Backend Data Flow (Module by Module)
+-----------------------------------------------------
+
+2.1. Authentication (Login Page)
+- Frontend Action: ইউজার login/page.tsx থেকে ইমেইল ও পাসওয়ার্ড সাবমিট করবে।
+- Backend Logic: 
+  - POST /api/v1/auth/login
+  - bcrypt.compare() দিয়ে পাসওয়ার্ড চেক করবে। 
+  - সফল হলে jwt.sign() দিয়ে একটি অ্যাক্সেস টোকেন জেনারেট করবে।
+  - রেসপন্সে { success: true, token, user: { role, email } } পাঠাবে।
+  - Middleware: এরপর থেকে ড্যাশবোর্ডের সব API কলে authMiddleware টোকেন চেক করবে।
+
+2.2. Dashboard Overview (/dashboard)
+- Frontend Action: পেজ লোড হওয়ার সময় চার্ট ও KPI কার্ডগুলোর জন্য ডেটা ফেচ করবে।
+- Backend Logic: 
+  - GET /api/v1/dashboard/metrics
+  - মঙ্গোডিবি থেকে Energy, Water, Waste-এর সর্বশেষ মাসের ডেটা aggregate() করে টোটাল সামারি পাঠাবে।
+
+2.3. Factory Profile (/dashboard/factory)
+- Frontend Action: মডালের মাধ্যমে ফ্যাক্টরির নাম, ওয়ার্কার সংখ্যা, বায়ার আপডেট করা।
+- Backend Logic: 
+  - PUT /api/v1/factory/profile
+  - Zod Validation: ইনপুট ডেটা ভ্যালিডেট করবে। 
+  - findOneAndUpdate(..., { returnDocument: 'after' }) ব্যবহার করে ডাটাবেস আপডেট করবে।
+
+2.4. Energy, Water, Waste & Carbon (/dashboard/energy, water, waste, carbon)
+- Frontend Action: "Add Meter Reading" বা "Record Waste" মডাল থেকে নতুন ডেটা সেভ করা।
+- Backend Logic: 
+  - POST /api/v1/environment/energy (বা water/waste/carbon)
+  - ইনপুট ভ্যালু (যেমন: 12,450 m³ পানি) রিসিভ করে ডাটাবেসের WaterLogs কালেকশনে ইনসার্ট করবে। 
+  - Carbon স্কোপ ১, ২, ৩ এর জন্য CarbonCalculator ইউটিলিটি ফাংশন ব্যাকএন্ডে রান করে টোটাল CO2e হিসাব করে ডাটাবেসে সেভ করবে।
+
+2.5. Chemical Management (/dashboard/chemicals)
+- Frontend Action: নতুন কেমিক্যাল অ্যাড করা এবং ডিলিট (Confirm Modal) করা।
+- Backend Logic: 
+  - POST /api/v1/chemicals -> নতুন কেমিক্যাল (নাম, সাপ্লায়ার, ZDHC লেভেল) সেভ করা।
+  - DELETE /api/v1/chemicals/:id -> স্পেসিফিক আইডি ধরে findByIdAndDelete() রান করবে।
+
+2.6. Compliance & Documents (/dashboard/compliance, documents)
+- Frontend Action: অডিট ফাইন্ডিং লগ করা এবং পিডিএফ/সার্টিফিকেট আপলোড করা।
+- Backend Logic: 
+  - POST /api/v1/compliance/cap -> নতুন Corrective Action Plan (CAP) তৈরি করা।
+  - POST /api/v1/documents/upload -> Multer বা S3 ডিরেক্ট আপলোডের মাধ্যমে পিডিএফ সেভ করবে এবং ডাটাবেসে তার URL স্টোর করবে।
+
+2.7. Worker Social, Training & CSR (/dashboard/worker-social, training, csr)
+- Frontend Action: ট্রেইনিং শিডিউল করা, গ্রিভান্স (অভিযোগ) স্ট্যাটাস পরিবর্তন করা।
+- Backend Logic:
+  - GET /api/v1/hr/grievances -> সব অভিযোগের লিস্ট ফেচ করা।
+  - POST /api/v1/csr/events -> নতুন সিএসআর ইভেন্ট (যেমন: ব্লাড ডোনেশন) অ্যাড করা।
+
+2.8. Reports & Analytics (/dashboard/reports)
+- Frontend Action: PDF বা Excel রিপোর্ট জেনারেট করতে রিকোয়েস্ট পাঠানো।
+- Backend Logic:
+  - GET /api/v1/reports/export?type=excel&module=energy
+  - ব্যাকএন্ড exceljs বা pdfkit লাইব্রেরি ব্যবহার করে ডাটাবেস থেকে ডেটা ফেচ করে ফাইল তৈরি করবে এবং ক্লায়েন্টকে ডাউনলোড স্ট্রিম হিসেবে পাঠাবে।
+
+-----------------------------------------------------
+3. Core Database Models (Mongoose Schemas)
+-----------------------------------------------------
+- Users: name, email, password (hashed), role (Admin/Viewer), createdAt
+- Factory: factoryName, totalWorkers, buyers (Array), certifications
+- EnergyLogs: month, electricityKwh, gasM3, dieselLiter, intensity
+- WaterLogs: month, consumption, recycledAmount, source
+- Chemicals: name, supplier, zdhcLevel, sdsFileUrl
+- Audits (CAP): issue, auditType, status (Open/Closed), deadline
+- CSR_Events: eventType, participantsCount, date, budget
+
+-----------------------------------------------------
+4. Backend Request Validation & Error Handling
+-----------------------------------------------------
+- Global Error Handler: Express-এ একটি সেন্ট্রালাইজড errorHandler মিডলওয়্যার থাকবে যা ক্লায়েন্টকে { success: false, message: "Error message" } ফরমেটে রেসপন্স পাঠাবে। 
+- Zod Schema: ফ্রন্টএন্ড থেকে আসা যেকোনো পে-লোড (যেমন ফর্ম সাবমিট) ডাটাবেসে সেভ হওয়ার আগে Zod দিয়ে চেক করা হবে।
+- RBAC (Role Based Access): কোনো Viewer বা Employee যেন সেটিংস (Settings) বা యూজার ম্যানেজমেন্টের (POST /api/v1/users) ডেটা এডিট করতে না পারে তার জন্য রাউটগুলোতে authorizeRoles('Admin', 'Manager') বসানো থাকবে।
