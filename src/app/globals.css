@@ -44,23 +44,21 @@
   --accent-foreground: #166534;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617; /* Slate 950 */
-    --foreground: #f8fafc;
-    
-    --card: #0f172a;
-    --card-foreground: #f8fafc;
-    
-    --border: #1e293b;
-    --input: #1e293b;
-    
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    
-    --accent: #14532d;
-    --accent-foreground: #dcfce7;
-  }
+.dark {
+  --background: #0b1120; /* Very soft dark slate */
+  --foreground: #f1f5f9; /* Slate 100 instead of pure white */
+  
+  --card: #141b2d; /* Slightly lighter than background */
+  --card-foreground: #e2e8f0; /* Slate 200 */
+  
+  --border: #1e293b; /* Slate 800 */
+  --input: #1e293b;
+  
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8; /* Slate 400 */
+  
+  --accent: #112d22; /* Very dark emerald tint */
+  --accent-foreground: #6ee7b7; /* Emerald 300 */
 }
 
 @layer base {
@@ -90,12 +88,11 @@
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass-card {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-  }
+.dark .glass-card {
+  background: rgba(20, 27, 45, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
 }

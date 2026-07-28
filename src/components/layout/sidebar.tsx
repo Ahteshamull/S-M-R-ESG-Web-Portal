@@ -25,12 +25,12 @@ const navGroups = [
       { href: "/dashboard/water", icon: Droplets, label: "Water" },
       { href: "/dashboard/waste", icon: Trash2, label: "Waste" },
       { href: "/dashboard/carbon", icon: Cloud, label: "Carbon" },
+      { href: "/dashboard/chemicals", icon: FlaskConical, label: "Chemical Mgmt" },
     ]
   },
   {
     title: "Compliance & Docs",
     items: [
-      { href: "/dashboard/chemicals", icon: FlaskConical, label: "Chemical Mgmt" },
       { href: "/dashboard/compliance", icon: Scale, label: "Compliance" },
       { href: "/dashboard/documents", icon: FileText, label: "Documents" },
     ]
@@ -86,7 +86,7 @@ export function Sidebar() {
                     href={item.href} 
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors ${
                       isActive 
-                        ? "bg-emerald-50 text-emerald-700" 
+                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400" 
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                   >
@@ -109,7 +109,7 @@ export function Sidebar() {
                 href={item.href} 
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors ${
                   isActive 
-                    ? "bg-emerald-50 text-emerald-700" 
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400" 
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
@@ -118,11 +118,14 @@ export function Sidebar() {
               </Link>
             );
           })}
+
           <button 
             onClick={() => {
+              // Usually we would clear the cookie here, but for this mock we just redirect
+              document.cookie = "esg_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
               window.location.href = '/login';
             }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors mt-4"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors mt-2 border border-transparent dark:hover:border-red-900"
           >
             <LogOut className="w-5 h-5" />
             Logout

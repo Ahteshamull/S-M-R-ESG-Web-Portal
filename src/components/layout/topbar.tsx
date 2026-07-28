@@ -1,8 +1,9 @@
 "use client";
 
-import { Bell, Search, UserCircle, Leaf, Menu } from "lucide-react";
+import { Search, UserCircle, Leaf, Menu } from "lucide-react";
 import Link from "next/link";
 import { useSidebarStore } from "@/store/useSidebarStore";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Topbar() {
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
@@ -39,10 +40,7 @@ export function Topbar() {
         <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted md:hidden">
           <Search className="w-5 h-5" />
         </button>
-        <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-card" />
-        </button>
+        <ThemeToggle />
         <div className="h-8 w-px bg-border mx-1 hidden sm:block" />
         <button className="flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
