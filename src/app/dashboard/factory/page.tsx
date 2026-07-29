@@ -61,7 +61,7 @@ export default function FactoryProfilePage() {
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
               <div className="p-4 bg-muted/30 rounded-lg border border-border">
-                <p className="text-xs text-muted-foreground mb-1">Total Workers</p>
+                <p className="text-xs text-muted-foreground mb-1">Total number of employees</p>
                 <p className="text-lg font-bold flex items-center"><Users className="w-4 h-4 mr-2 text-blue-500"/> 2,450</p>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg border border-border">
@@ -69,12 +69,34 @@ export default function FactoryProfilePage() {
                 <p className="text-lg font-bold">120,000 sqft</p>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg border border-border">
-                <p className="text-xs text-muted-foreground mb-1">Est. Year</p>
+                <p className="text-xs text-muted-foreground mb-1">Establishment year</p>
                 <p className="text-lg font-bold">2005</p>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg border border-border">
                 <p className="text-xs text-muted-foreground mb-1">Production Type</p>
                 <p className="text-lg font-bold">Knitwear</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-card rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-4">Facility Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Our Vision</h4>
+                <p className="text-sm text-foreground bg-muted/30 p-3 rounded-lg border border-border">To be the leading sustainable apparel manufacturer globally, prioritizing ESG compliance and worker well-being.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Infrastructure & Layout</h4>
+                <p className="text-sm text-foreground bg-muted/30 p-3 rounded-lg border border-border">Modern vertical layout with optimized material flow, natural lighting, and energy-efficient cooling systems.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Machinery & Equipment</h4>
+                <p className="text-sm text-foreground bg-muted/30 p-3 rounded-lg border border-border">State-of-the-art automatic cutting machines, IoT-enabled sewing lines, and waterless dyeing technology.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Capacity & Workforce</h4>
+                <p className="text-sm text-foreground bg-muted/30 p-3 rounded-lg border border-border">Monthly capacity of 1.2M pieces with a highly skilled workforce of 2,450 employees running in 2 shifts.</p>
               </div>
             </div>
           </div>
@@ -123,25 +145,55 @@ export default function FactoryProfilePage() {
         isOpen={isEditModalOpen} 
         onClose={() => setIsEditModalOpen(false)} 
         title="Edit Factory Profile"
+        maxWidthClass="max-w-3xl"
       >
-        <form onSubmit={handleSave} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Factory Name</label>
-            <input type="text" defaultValue="Apex Apparels Ltd." className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Location</label>
-            <input type="text" defaultValue="Gazipur, Dhaka, Bangladesh" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSave} className="space-y-4 max-h-[70vh] overflow-y-auto px-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium">Total Workers</label>
-              <input type="number" defaultValue="2450" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              <label className="text-sm font-medium">Factory Name</label>
+              <input type="text" defaultValue="Apex Apparels Ltd." className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Factory Address</label>
+              <input type="text" defaultValue="Gazipur, Dhaka, Bangladesh" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Production Type</label>
+              <select defaultValue="Knitwear" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option>Knitwear</option>
+                <option>Woven</option>
+                <option>Dyeing & Printing</option>
+                <option>Accessories</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Establishment year</label>
+              <input type="number" defaultValue="2005" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Total Area (sqft)</label>
               <input type="number" defaultValue="120000" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
             </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Total number of employees</label>
+              <input type="number" defaultValue="2450" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Infrastructure & Layout</label>
+            <textarea rows={3} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"></textarea>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Machinery & Equipment</label>
+            <textarea rows={3} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"></textarea>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Capacity & Workforce</label>
+            <textarea rows={3} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"></textarea>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Our Vision</label>
+            <textarea rows={3} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"></textarea>
           </div>
           <div className="pt-4 border-t border-border flex justify-end gap-3 mt-6">
             <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg text-sm font-medium transition-colors">
@@ -159,17 +211,18 @@ export default function FactoryProfilePage() {
         isOpen={isAddFactoryModalOpen} 
         onClose={() => setIsAddFactoryModalOpen(false)} 
         title="Add New Factory"
+        maxWidthClass="max-w-3xl"
       >
-        <form onSubmit={handleAddFactory} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Factory Name</label>
-            <input type="text" placeholder="e.g., Apex Apparels Unit-2" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Location</label>
-            <input type="text" placeholder="e.g., Narayanganj, Bangladesh" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleAddFactory} className="space-y-4 max-h-[70vh] overflow-y-auto px-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Factory Name</label>
+              <input type="text" placeholder="e.g., Apex Apparels Unit-2" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Factory Address</label>
+              <input type="text" placeholder="e.g., Narayanganj, Bangladesh" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Production Type</label>
               <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
@@ -180,9 +233,33 @@ export default function FactoryProfilePage() {
               </select>
             </div>
             <div className="space-y-1">
+              <label className="text-sm font-medium">Establishment year</label>
+              <input type="number" placeholder="YYYY" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
               <label className="text-sm font-medium">Total Area (sqft)</label>
               <input type="number" placeholder="0" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
             </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Total number of employees</label>
+              <input type="number" placeholder="0" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Infrastructure & Layout</label>
+            <textarea rows={3} placeholder="Describe infrastructure and layout..." className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"></textarea>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Machinery & Equipment</label>
+            <textarea rows={3} placeholder="List machinery and equipment..." className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"></textarea>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Capacity & Workforce</label>
+            <textarea rows={3} placeholder="Details about capacity and workforce..." className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"></textarea>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Our Vision</label>
+            <textarea rows={3} placeholder="State factory vision..." className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"></textarea>
           </div>
           <div className="pt-4 border-t border-border flex justify-end gap-3 mt-6">
             <button type="button" onClick={() => setIsAddFactoryModalOpen(false)} className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg text-sm font-medium transition-colors">

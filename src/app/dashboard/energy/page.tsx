@@ -127,27 +127,73 @@ export default function EnergyPage() {
         </div>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Daily Energy">
-        <form onSubmit={handleSave} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Date</label>
-            <input type="date" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm" />
+      <div className="glass-card rounded-xl p-6 border border-border">
+        <h3 className="text-lg font-semibold mb-4">Energy Targets & Compliance</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 bg-muted/30 rounded-lg border border-border">
+            <p className="text-xs font-medium text-muted-foreground mb-1">GHG Emission Tool</p>
+            <p className="text-sm font-semibold">Higg FEM 3.0</p>
+          </div>
+          <div className="p-4 bg-muted/30 rounded-lg border border-border">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Baseline Consumption</p>
+            <p className="text-sm font-semibold">45,000 kWh/month</p>
+          </div>
+          <div className="p-4 bg-muted/30 rounded-lg border border-border">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Yearly Reduction Target</p>
+            <p className="text-sm font-semibold text-emerald-600">5% Reduction</p>
+          </div>
+          <div className="p-4 bg-emerald-50/50 rounded-lg border border-emerald-100">
+            <p className="text-xs font-medium text-emerald-600 mb-1">KPI Status</p>
+            <p className="text-sm font-bold text-emerald-700 flex items-center">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></div> On Track
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Energy Details" maxWidthClass="max-w-3xl">
+        <form onSubmit={handleSave} className="space-y-4 max-h-[70vh] overflow-y-auto px-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Date</label>
+              <input type="date" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Types of Energy</label>
+              <input type="text" placeholder="e.g., Grid, Generator" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Electricity</label>
+              <input type="number" placeholder="0 (kWh)" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Natural Gas</label>
+              <input type="number" placeholder="0 (m³)" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Diesel</label>
+              <input type="number" placeholder="0 (Liters)" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">GHG Emission Tool</label>
+              <input type="text" placeholder="Enter tool name" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Based Line Consumption</label>
+              <input type="number" placeholder="0" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Yearly Reduction Target</label>
+              <input type="text" placeholder="e.g., 5%" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium">Electricity (kWh)</label>
-            <input type="number" placeholder="0" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm" />
+            <label className="text-sm font-medium">KPI Based Achievement & Failure Status</label>
+            <textarea rows={3} placeholder="Describe status..." className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"></textarea>
           </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Natural Gas (m³)</label>
-            <input type="number" placeholder="0" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Diesel (Liters)</label>
-            <input type="number" placeholder="0" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm" />
-          </div>
-          <div className="pt-4 flex justify-end gap-3 mt-6">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-muted rounded-lg text-sm font-medium">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium">Save Log</button>
+          <div className="pt-4 border-t border-border flex justify-end gap-3 mt-6">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg text-sm font-medium transition-colors">Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors">Save Log</button>
           </div>
         </form>
       </Modal>

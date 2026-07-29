@@ -104,43 +104,76 @@ export default function WastePage() {
         </div>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Record Waste Disposal">
-        <form onSubmit={handleSave} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Date</label>
-            <input type="date" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm" />
+      <div className="glass-card rounded-xl overflow-hidden border border-border">
+        <div className="p-4 border-b border-border bg-muted/20">
+          <h3 className="font-semibold text-lg">Waste Tracking & Agreements</h3>
+        </div>
+        <div className="p-4 overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="text-muted-foreground border-b border-border">
+              <tr>
+                <th className="pb-3 font-medium">Type Of Waste</th>
+                <th className="pb-3 font-medium">Waste Inventory</th>
+                <th className="pb-3 font-medium">Tracking Record</th>
+                <th className="pb-3 font-medium">Waste Summary</th>
+                <th className="pb-3 font-medium">Waste Agreement</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              <tr>
+                <td className="py-3 font-medium">General Waste</td>
+                <td className="py-3">500 kg</td>
+                <td className="py-3">Documented (Gate Pass #1024)</td>
+                <td className="py-3">Monthly Report Generated</td>
+                <td className="py-3"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Active - City Corp</span></td>
+              </tr>
+              <tr>
+                <td className="py-3 font-medium">Hazardous Waste</td>
+                <td className="py-3">120 kg</td>
+                <td className="py-3">Documented (Manifest #HZ99)</td>
+                <td className="py-3">Monthly Report Generated</td>
+                <td className="py-3"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Active - ABC Recycling</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Record Waste Disposal" maxWidthClass="max-w-3xl">
+        <form onSubmit={handleSave} className="space-y-4 max-h-[70vh] overflow-y-auto px-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Date</label>
+              <input type="date" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Type Of waste</label>
+              <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option>General Waste</option>
+                <option>Recyclable</option>
+                <option>Hazardous</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Waste Inventory</label>
+              <input type="text" placeholder="e.g., 50 kg" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Waste Tracking Record</label>
+              <input type="text" placeholder="Enter tracking details" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Waste Summary</label>
+              <input type="text" placeholder="Enter summary" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Waste Agreement</label>
+              <input type="text" placeholder="Enter agreement details or link" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
           </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Waste Type</label>
-            <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm">
-              <option>General Waste</option>
-              <option>Recyclable</option>
-              <option>Hazardous (Sludge/Chemicals)</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Quantity</label>
-            <input type="number" placeholder="0" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Unit</label>
-            <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm">
-              <option>kg</option>
-              <option>Tons</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Disposal Method</label>
-            <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm">
-              <option>Landfill</option>
-              <option>Recycling Facility</option>
-              <option>Incineration</option>
-              <option>Authorized Vendor</option>
-            </select>
-          </div>
-          <div className="pt-4 flex justify-end gap-3 mt-6">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-muted rounded-lg text-sm font-medium">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium">Save Record</button>
+          <div className="pt-4 border-t border-border flex justify-end gap-3 mt-6">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg text-sm font-medium transition-colors">Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors">Save Record</button>
           </div>
         </form>
       </Modal>

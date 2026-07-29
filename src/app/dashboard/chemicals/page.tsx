@@ -71,18 +71,20 @@ export default function ChemicalsPage() {
           <thead className="bg-muted/50 text-muted-foreground">
             <tr>
               <th className="p-4 font-medium">Chemical Name</th>
-              <th className="p-4 font-medium">Supplier</th>
-              <th className="p-4 font-medium">ZDHC Level</th>
-              <th className="p-4 font-medium">Status</th>
+              <th className="p-4 font-medium">Types of Chemical</th>
+              <th className="p-4 font-medium">Chemical Inventory</th>
+              <th className="p-4 font-medium">Chemical Use Area</th>
+              <th className="p-4 font-medium">Monthly Incheck Report</th>
               <th className="p-4 font-medium text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             <tr>
               <td className="p-4 font-medium">Reactive Black 5</td>
-              <td className="p-4">Huntsman</td>
-              <td className="p-4"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Level 3</span></td>
-              <td className="p-4">Approved</td>
+              <td className="p-4">Dye</td>
+              <td className="p-4">1,250 kg</td>
+              <td className="p-4">Dyeing Floor A</td>
+              <td className="p-4"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Submitted</span></td>
               <td className="p-4 text-right">
                 <button 
                   onClick={() => setChemicalToDelete('Reactive Black 5')}
@@ -94,9 +96,10 @@ export default function ChemicalsPage() {
             </tr>
             <tr>
               <td className="p-4 font-medium">Acetic Acid (99%)</td>
-              <td className="p-4">Local Supplier</td>
-              <td className="p-4"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">Level 1</span></td>
-              <td className="p-4">Approved</td>
+              <td className="p-4">Auxiliary</td>
+              <td className="p-4">500 kg</td>
+              <td className="p-4">Washing Area</td>
+              <td className="p-4"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Submitted</span></td>
               <td className="p-4 text-right">
                 <button 
                   onClick={() => setChemicalToDelete('Acetic Acid (99%)')}
@@ -114,24 +117,34 @@ export default function ChemicalsPage() {
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
         title="Add New Chemical"
+        maxWidthClass="max-w-3xl"
       >
-        <form onSubmit={handleSave} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Chemical Name</label>
-            <input type="text" placeholder="e.g., Reactive Blue 21" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Supplier / Manufacturer</label>
-            <input type="text" placeholder="e.g., Huntsman" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">ZDHC MRSL Level</label>
-            <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
-              <option>Level 3</option>
-              <option>Level 2</option>
-              <option>Level 1</option>
-              <option>Unknown/Not Certified</option>
-            </select>
+        <form onSubmit={handleSave} className="space-y-4 max-h-[70vh] overflow-y-auto px-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Date</label>
+              <input type="date" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Name of chemical</label>
+              <input type="text" placeholder="e.g., Reactive Blue 21" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Types of Chemical</label>
+              <input type="text" placeholder="e.g., Dye, Auxiliary" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Chemical Inventory</label>
+              <input type="text" placeholder="e.g., 500 kg" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Chemical Use Area</label>
+              <input type="text" placeholder="e.g., Dyeing Floor" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Monthly Incheck Report</label>
+              <input type="text" placeholder="Report details or link" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
           </div>
           <div className="pt-4 border-t border-border flex justify-end gap-3 mt-6">
             <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg text-sm font-medium transition-colors">
