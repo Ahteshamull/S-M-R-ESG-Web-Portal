@@ -19,7 +19,7 @@ const navGroups = [
     ]
   },
   {
-    title: "Environment",
+    title: "Environment Management System",
     items: [
       { href: "/dashboard/energy", icon: Zap, label: "Energy" },
       { href: "/dashboard/water", icon: Droplets, label: "Water" },
