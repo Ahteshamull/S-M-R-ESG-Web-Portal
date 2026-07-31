@@ -365,49 +365,131 @@ export const exportWasteGenerationExcel = async (records: WasteGenerationRecord[
   saveAs(new Blob([buffer]), `Waste_Generation_Details_${new Date().getFullYear()}.xlsx`);
 };
 
-export const exportInventoryExcel = async (records: InventoryRecord[]) => {
+export const exportInventoryExcel = async (records: any[]) => {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Waste Inventory');
 
-  // Title
-  sheet.mergeCells('A1:F1');
-  const titleCell = sheet.getCell('A1');
-  titleCell.value = 'Current Waste Inventory Report';
-  titleCell.font = { bold: true, size: 16, color: { argb: 'FF10B981' } }; // Emerald tint
-  titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+  // Company Header Block
+  sheet.mergeCells('A1:L1');
+  const h1 = sheet.getCell('A1');
+  h1.value = 'Name of Company/Production Unit: MG Shirtex Limited.';
+  h1.font = { bold: true };
+  h1.border = { top: {style:'medium'}, left: {style:'medium'}, bottom: {style:'thin'}, right: {style:'medium'} };
   
-  sheet.getRow(1).height = 30;
-  sheet.getRow(2).height = 15; // spacer
+  sheet.mergeCells('A2:B2'); sheet.getCell('A2').value = 'Updated on:'; sheet.getCell('A2').font = { bold: true };
+  sheet.mergeCells('C2:L2'); sheet.getCell('C2').value = '31/08/2024'; // Hardcoded or dynamic
+  sheet.getCell('A2').border = { top: {style:'thin'}, left: {style:'medium'}, bottom: {style:'thin'}, right: {style:'thin'} };
+  sheet.getCell('C2').border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'medium'} };
 
-  // Headers
-  sheet.columns = [
-    { header: 'Date Logged', key: 'date', width: 15 },
-    { header: 'Type of Waste', key: 'wasteType', width: 25 },
-    { header: 'Quantity', key: 'quantity', width: 15 },
-    { header: 'Unit', key: 'unit', width: 10 },
-    { header: 'Storage Area', key: 'storageArea', width: 25 },
-    { header: 'Notes', key: 'notes', width: 35 },
+  sheet.mergeCells('A3:B4'); sheet.getCell('A3').value = 'Responsible Person'; sheet.getCell('A3').font = { bold: true };
+  sheet.mergeCells('C3:L3'); sheet.getCell('C3').value = 'Shahnayaz Hossain Joy';
+  sheet.mergeCells('C4:L4'); sheet.getCell('C4').value = 'Executive-Environment';
+  sheet.getCell('A3').border = { top: {style:'thin'}, left: {style:'medium'}, bottom: {style:'medium'}, right: {style:'thin'} };
+  sheet.getCell('C3').border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'medium'} };
+  sheet.getCell('C4').border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'medium'}, right: {style:'medium'} };
+  
+  sheet.getRow(1).height = 25;
+  sheet.getRow(2).height = 20;
+  sheet.getRow(3).height = 20;
+  sheet.getRow(4).height = 20;
+
+  // Main Headers
+  const columns = [
+    { header: 'Sl.No', key: 'sl', width: 6 },
+    { header: 'WASTE NAME', key: 'wasteName', width: 20 },
+    { header: 'SOURCE OF WASTE', key: 'sourceOfWaste', width: 20 },
+    { header: 'WASTE CLASSIFICATION (Non-Hazardous/Hazardous)', key: 'classification', width: 30 },
+    { header: 'Monthly WASTE QUANTITY', key: 'quantity', width: 20 },
+    { header: 'UNIT', key: 'unit', width: 8 },
+    { header: 'Labeling', key: 'labeling', width: 10 },
+    { header: 'Identification', key: 'identification', width: 15 },
+    { header: 'PPE', key: 'ppe', width: 10 },
+    { header: 'WASTE STORAGE REQUIREMENT', key: 'storageReq', width: 25 },
+    { header: 'LOCATION OF STORAGE', key: 'location', width: 20 },
+    { header: 'WASTE DISPOSAL ROUTE', key: 'disposalRoute', width: 25 },
+    { header: 'APPLICABLE LEGAL PERMIT/REQUIREMENT (IF ANY)', key: 'permit', width: 25 },
+    { header: 'ON-SITE TREATMENT METHOD (IF ANY)', key: 'treatment', width: 25 },
+    { header: 'QUANTITY OF RECYCLED WASTE (IF ANY)', key: 'recycled', width: 25 },
+    { header: 'APPROVED WASTE CONTRACTOR (Name, Company name, Registration no)', key: 'contractor', width: 35 },
+    { header: 'DATE OF LAST WASTE HANDOVER', key: 'handoverDate', width: 15 },
+    { header: 'CHALLAN NO', key: 'challan', width: 15 },
+    { header: 'EMERGENCY CONTACT PERSON(NAME, DESIGNATION & CONTACT NO.)', key: 'emergency', width: 35 },
+    { header: 'CHECKED BY(NAME & DESIGNATION)', key: 'checkedBy', width: 30 },
+    { header: 'CHECKED ON(DATE - FORMAT DD/MM/YYYY)', key: 'checkedOn', width: 20 },
+    { header: 'REMARKS', key: 'remarks', width: 20 },
   ];
+  sheet.columns = columns;
 
-  const headerRow = sheet.getRow(3);
-  headerRow.values = ['Date Logged', 'Type of Waste', 'Quantity', 'Unit', 'Storage Area', 'Notes'];
-  applyHeaderStyle(headerRow, 'FF10B981'); // Emerald Header
+  const headerRow = sheet.getRow(6);
+  headerRow.height = 80; // Tall row for wrapped headers
+  columns.forEach((col, i) => {
+    const cell = headerRow.getCell(i+1);
+    cell.value = col.header;
+    cell.font = { bold: true };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } }; // Light green
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true, textRotation: 0 };
+    cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+  });
 
-  // Data
-  records.forEach((record) => {
-    const row = sheet.addRow({
-      date: record.date,
-      wasteType: record.wasteType,
-      quantity: record.quantity,
-      unit: record.unit,
-      storageArea: record.storageArea,
-      notes: record.notes,
-    });
-    applyDataStyle(row);
+  // Extra Header Merges for Grouped Columns
+  sheet.insertRow(6, []);
+  const topHeaderRow = sheet.getRow(6);
+  topHeaderRow.height = 30;
+  
+  sheet.mergeCells('G6:I6');
+  const whrCell = topHeaderRow.getCell(7);
+  whrCell.value = 'WASTE HANDLING REQUIREMENT';
+  whrCell.font = { bold: true };
+  whrCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } };
+  whrCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  
+  // Format top row borders
+  for(let i=1; i<=22; i++) {
+     const cell = topHeaderRow.getCell(i);
+     cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+     if(i < 7 || i > 9) {
+        sheet.mergeCells(6, i, 7, i); // merge vertically for non-grouped columns
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } };
+     }
+  }
+
+  let rIdx = 8;
+  records.forEach((record, index) => {
+    const row = sheet.getRow(rIdx);
+    row.values = [
+      index + 1,
+      record.wasteName,
+      record.sourceOfWaste,
+      record.wasteClassification,
+      record.quantity,
+      record.unit,
+      record.labeling,
+      record.identification,
+      record.ppe,
+      record.wasteStorageRequirement,
+      record.locationOfStorage,
+      record.wasteDisposalRoute,
+      record.applicableLegalPermit,
+      record.onSiteTreatmentMethod,
+      record.quantityOfRecycledWaste,
+      record.approvedWasteContractor,
+      record.dateOfLastWasteHandover,
+      record.challanNo,
+      record.emergencyContactPerson,
+      record.checkedBy,
+      record.checkedOn,
+      record.remarks
+    ];
+    for(let i=1; i<=22; i++) {
+       const cell = row.getCell(i);
+       cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+       cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    }
+    rIdx++;
   });
 
   const buffer = await workbook.xlsx.writeBuffer();
-  saveAs(new Blob([buffer]), `Waste_Inventory_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+  saveAs(new Blob([buffer]), `Waste_Matrix_Inventory_${new Date().toISOString().split('T')[0]}.xlsx`);
 };
 
 export const exportRecycleExcel = async (records: RecycleRecord[]) => {
