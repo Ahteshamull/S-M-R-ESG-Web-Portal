@@ -1,182 +1,148 @@
 "use client";
 
-import { useState } from "react";
-import { Trash2, Recycle, AlertTriangle, Plus } from "lucide-react";
-import toast from "react-hot-toast";
-import { Modal } from "@/components/ui/modal";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import Link from "next/link";
+import { Trash2, Recycle, ClipboardList, PackageSearch, Factory, ChevronRight } from "lucide-react";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const data = [
   { name: 'General Waste', value: 4200 },
   { name: 'Recycled Waste', value: 2800 },
   { name: 'Hazardous Waste', value: 120 },
 ];
-const COLORS = ['#a8a29e', '#4ade80', '#ef4444'];
+const COLORS = ['#10b981', '#3b82f6', '#f43f5e'];
 
-export default function WastePage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsModalOpen(false);
-    toast.success("Waste record logged successfully!");
-  };
-
+export default function WasteDashboardHub() {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Waste Management</h1>
-          <p className="text-sm text-muted-foreground mt-1">Track general, recyclable, and hazardous waste disposal.</p>
+    <div className="space-y-8 pb-10">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-background/40 p-6 rounded-2xl border border-border/50 backdrop-blur-xl shadow-sm relative overflow-hidden">
+        <div className="absolute -left-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="relative z-10">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-300 bg-clip-text text-transparent">Waste Management</h1>
+          <p className="text-sm text-muted-foreground mt-1.5 font-medium">Track waste reports, inventory, and recycled materials.</p>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center"
-        >
-          <Plus className="w-4 h-4 mr-1" /> Record Waste
-        </button>
       </div>
 
+      {/* Hub Navigation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card rounded-xl p-5 border-l-4 border-l-stone-400">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">General Waste</p>
-              <h3 className="text-2xl font-bold mt-1">4.2 <span className="text-sm font-normal text-muted-foreground">Tons</span></h3>
+        {/* Tracking Report */}
+        <Link href="/dashboard/waste/tracking" className="group block relative overflow-hidden bg-background/50 backdrop-blur-xl rounded-2xl p-6 border border-border/50 shadow-sm hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-500/30 transition-all duration-300 cursor-pointer">
+          <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all"></div>
+          <div className="relative z-10">
+            <div className="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 group-hover:scale-110 transition-transform">
+              <ClipboardList className="w-7 h-7" />
             </div>
-            <div className="p-2 bg-stone-100 rounded-lg text-stone-600">
-              <Trash2 className="w-5 h-5" />
+            <h3 className="text-xl font-bold text-foreground mb-2">Waste Tracking</h3>
+            <p className="text-sm text-muted-foreground mb-6">Manage tracking records, gate passes, manifests, and agreements.</p>
+            <div className="flex items-center text-blue-600 dark:text-blue-400 text-sm font-semibold group-hover:translate-x-1 transition-transform">
+              Open Tracking <ChevronRight className="w-4 h-4 ml-1" />
             </div>
           </div>
-        </div>
-        
-        <div className="glass-card rounded-xl p-5 border-l-4 border-l-green-400">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Recycled Waste</p>
-              <h3 className="text-2xl font-bold mt-1">2.8 <span className="text-sm font-normal text-muted-foreground">Tons</span></h3>
+        </Link>
+
+        {/* Inventory */}
+        <Link href="/dashboard/waste/inventory" className="group block relative overflow-hidden bg-background/50 backdrop-blur-xl rounded-2xl p-6 border border-border/50 shadow-sm hover:shadow-lg hover:shadow-emerald-500/10 hover:border-emerald-500/30 transition-all duration-300 cursor-pointer">
+          <div className="absolute -right-6 -top-6 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all"></div>
+          <div className="relative z-10">
+            <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
+              <PackageSearch className="w-7 h-7" />
             </div>
-            <div className="p-2 bg-green-100 rounded-lg text-green-600">
-              <Recycle className="w-5 h-5" />
+            <h3 className="text-xl font-bold text-foreground mb-2">Waste Inventory</h3>
+            <p className="text-sm text-muted-foreground mb-6">Keep track of currently stored waste in the facility by category.</p>
+            <div className="flex items-center text-emerald-600 dark:text-emerald-400 text-sm font-semibold group-hover:translate-x-1 transition-transform">
+              Open Inventory <ChevronRight className="w-4 h-4 ml-1" />
             </div>
+          </div>
+        </Link>
+
+        {/* Recycle Waste */}
+        <Link href="/dashboard/waste/recycle" className="group block relative overflow-hidden bg-background/50 backdrop-blur-xl rounded-2xl p-6 border border-border/50 shadow-sm hover:shadow-lg hover:shadow-orange-500/10 hover:border-orange-500/30 transition-all duration-300 cursor-pointer">
+          <div className="absolute -right-6 -top-6 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl group-hover:bg-orange-500/20 transition-all"></div>
+          <div className="relative z-10">
+            <div className="w-14 h-14 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-600 dark:text-orange-400 mb-6 group-hover:scale-110 transition-transform">
+              <Recycle className="w-7 h-7" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-2">Recycled Waste</h3>
+            <p className="text-sm text-muted-foreground mb-6">Log and monitor recycled materials, vendors, and revenue/cost.</p>
+            <div className="flex items-center text-orange-600 dark:text-orange-400 text-sm font-semibold group-hover:translate-x-1 transition-transform">
+              Open Recycle <ChevronRight className="w-4 h-4 ml-1" />
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* Analytics Overview Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 bg-background/50 backdrop-blur-xl rounded-2xl p-6 border border-border/50 shadow-sm relative overflow-hidden">
+          <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+            <Factory className="w-5 h-5 text-emerald-600" /> Waste Generation Distribution
+          </h3>
+          <div className="w-full h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={5}
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  itemStyle={{ color: '#1f2937', fontWeight: 600 }}
+                  formatter={(value) => `${value} kg`}
+                />
+                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 500 }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="glass-card rounded-xl p-5 border-l-4 border-l-red-500">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Hazardous Waste</p>
-              <h3 className="text-2xl font-bold mt-1">120 <span className="text-sm font-normal text-muted-foreground">kg</span></h3>
+        <div className="lg:col-span-2 bg-background/50 backdrop-blur-xl rounded-2xl p-6 border border-border/50 shadow-sm flex flex-col justify-center">
+          <div className="space-y-6">
+            <div className="p-4 bg-gradient-to-r from-emerald-500/5 to-transparent rounded-xl border border-emerald-500/20">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-xs font-semibold text-emerald-700/70 dark:text-emerald-400/70 mb-1 uppercase tracking-wider">Total General Waste (YTD)</p>
+                  <p className="text-2xl font-black text-emerald-700 dark:text-emerald-400">4.2 <span className="text-sm font-medium">Tons</span></p>
+                </div>
+                <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-600">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+              </div>
             </div>
-            <div className="p-2 bg-red-100 rounded-lg text-red-600">
-              <AlertTriangle className="w-5 h-5" />
+            <div className="p-4 bg-gradient-to-r from-blue-500/5 to-transparent rounded-xl border border-blue-500/20">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-xs font-semibold text-blue-700/70 dark:text-blue-400/70 mb-1 uppercase tracking-wider">Total Recycled (YTD)</p>
+                  <p className="text-2xl font-black text-blue-700 dark:text-blue-400">2.8 <span className="text-sm font-medium">Tons</span></p>
+                </div>
+                <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-600">
+                  <Recycle className="w-6 h-6" />
+                </div>
+              </div>
+            </div>
+            <div className="p-4 bg-gradient-to-r from-rose-500/5 to-transparent rounded-xl border border-rose-500/20">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-xs font-semibold text-rose-700/70 dark:text-rose-400/70 mb-1 uppercase tracking-wider">Total Hazardous (YTD)</p>
+                  <p className="text-2xl font-black text-rose-700 dark:text-rose-400">120 <span className="text-sm font-medium">kg</span></p>
+                </div>
+                <div className="p-3 bg-rose-500/10 rounded-2xl text-rose-600">
+                  <Factory className="w-6 h-6" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <div className="glass-card rounded-xl p-6 h-96 flex flex-col border border-border">
-        <h3 className="text-lg font-semibold mb-6">Waste Generation Trends</h3>
-        <div className="flex-1 w-full min-h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={80}
-                outerRadius={120}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                itemStyle={{ color: '#1f2937', fontWeight: 500 }}
-                formatter={(value) => `${value} kg`}
-              />
-              <Legend verticalAlign="bottom" height={36} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="glass-card rounded-xl overflow-hidden border border-border">
-        <div className="p-4 border-b border-border bg-muted/20">
-          <h3 className="font-semibold text-lg">Waste Tracking & Agreements</h3>
-        </div>
-        <div className="p-4 overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="text-muted-foreground border-b border-border">
-              <tr>
-                <th className="pb-3 font-medium">Type Of Waste</th>
-                <th className="pb-3 font-medium">Waste Inventory</th>
-                <th className="pb-3 font-medium">Tracking Record</th>
-                <th className="pb-3 font-medium">Waste Summary</th>
-                <th className="pb-3 font-medium">Waste Agreement</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              <tr>
-                <td className="py-3 font-medium">General Waste</td>
-                <td className="py-3">500 kg</td>
-                <td className="py-3">Documented (Gate Pass #1024)</td>
-                <td className="py-3">Monthly Report Generated</td>
-                <td className="py-3"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Active - City Corp</span></td>
-              </tr>
-              <tr>
-                <td className="py-3 font-medium">Hazardous Waste</td>
-                <td className="py-3">120 kg</td>
-                <td className="py-3">Documented (Manifest #HZ99)</td>
-                <td className="py-3">Monthly Report Generated</td>
-                <td className="py-3"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Active - ABC Recycling</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Record Waste Disposal" maxWidthClass="max-w-3xl">
-        <form onSubmit={handleSave} className="space-y-4 max-h-[70vh] overflow-y-auto px-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Date</label>
-              <input type="date" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Type Of waste</label>
-              <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
-                <option>General Waste</option>
-                <option>Recyclable</option>
-                <option>Hazardous</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Waste Inventory</label>
-              <input type="text" placeholder="e.g., 50 kg" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Waste Tracking Record</label>
-              <input type="text" placeholder="Enter tracking details" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Waste Summary</label>
-              <input type="text" placeholder="Enter summary" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Waste Agreement</label>
-              <input type="text" placeholder="Enter agreement details or link" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-            </div>
-          </div>
-          <div className="pt-4 border-t border-border flex justify-end gap-3 mt-6">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg text-sm font-medium transition-colors">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors">Save Record</button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 }
