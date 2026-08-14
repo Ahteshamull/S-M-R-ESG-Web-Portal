@@ -69,7 +69,9 @@ export default function DocumentsPage() {
 
   const handleDownload = (fileUrl: string) => {
     if (!fileUrl) return;
-    const url = fileUrl.startsWith("http") ? fileUrl : `http://localhost:5000${fileUrl}`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+    const serverHost = apiBase.replace('/api/v1', '');
+    const url = fileUrl.startsWith("http") ? fileUrl : `${serverHost}${fileUrl}`;
     window.open(url, "_blank");
   };
 

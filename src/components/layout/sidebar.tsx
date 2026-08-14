@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, Building2, Zap, Droplets, Trash2, Cloud, 
   FlaskConical, Scale, FileText, GraduationCap, Users, Heart, 
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useSidebarStore } from "@/store/useSidebarStore";
 import { useEffect } from "react";
+import { useLogoutMutation } from "@/lib/redux/slices/authApi";
 
 const navGroups = [
   {
@@ -52,12 +53,35 @@ const bottomItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isOpen, closeSidebar } = useSidebarStore();
+  const [logoutApi] = useLogoutMutation();
 
   // Close sidebar on route change for mobile
   useEffect(() => {
     closeSidebar();
   }, [pathname, closeSidebar]);
+
+  const handleLogout = async () => {
+    try {
+      // Call backend logout to clear any remote cookies if applicable
+      await logoutApi().unwrap();
+    } catch (err) {
+      console.error("Backend Logout API failed:", err);
+    }
+    
+    try {
+      // Call Next.js local API to clear HttpOnly cookies stuck on localhost
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error("Local Logout API failed:", err);
+    }
+
+    // Clear client-side cookie as fallback
+    document.cookie = "esg_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    // Force redirect to login page
+    window.location.href = '/login';
+  };
 
   return (
     <>
@@ -120,11 +144,7 @@ export function Sidebar() {
           })}
 
           <button 
-            onClick={() => {
-              // Usually we would clear the cookie here, but for this mock we just redirect
-              document.cookie = "esg_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-              window.location.href = '/login';
-            }}
+            onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors mt-2 border border-transparent dark:hover:border-red-900"
           >
             <LogOut className="w-5 h-5" />
