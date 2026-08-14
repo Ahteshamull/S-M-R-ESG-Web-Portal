@@ -1,17 +1,95 @@
 "use client";
 
 import { useState } from "react";
-import { Users, HeartPulse, MessageSquareWarning, ArrowUpRight, Plus } from "lucide-react";
+import { Users, HeartPulse, MessageSquareWarning, ArrowUpRight, Plus, Trash2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
+import { 
+  useGetWorkerSocialDataQuery, 
+  useCreateGrievanceMutation, 
+  useUpdateGrievanceStatusMutation, 
+  useDeleteGrievanceMutation 
+} from "@/lib/redux/slices/workerSocialApi";
 
 export default function WorkerSocialPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data, isLoading } = useGetWorkerSocialDataQuery();
+  const [createGrievance] = useCreateGrievanceMutation();
+  const [updateGrievanceStatus] = useUpdateGrievanceStatusMutation();
+  const [deleteGrievance] = useDeleteGrievanceMutation();
 
-  const handleSave = (e: React.FormEvent) => {
+  // Form State
+  const [grievanceType, setGrievanceType] = useState("Leave/Salary Issue");
+  const [description, setDescription] = useState("");
+  const [dateReceived, setDateReceived] = useState("");
+  const [department, setDepartment] = useState("");
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!description || !dateReceived) return;
+
+    const payload = {
+      grievanceType,
+      description,
+      dateReceived,
+      department: department || "General",
+      status: "Pending" as const,
+    };
+
+    const res = await createGrievance(payload);
     setIsModalOpen(false);
-    toast.success("Grievance logged successfully!");
+
+    if (!res.error) {
+      toast.success("Grievance logged successfully!");
+      setGrievanceType("Leave/Salary Issue"); setDescription(""); setDateReceived(""); setDepartment("");
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to log grievance";
+      toast.error(errorMsg);
+    }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    const res = await updateGrievanceStatus({ id, status: newStatus });
+    if (!res.error) {
+      toast.success("Status updated!");
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to update status";
+      toast.error(errorMsg);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const res = await deleteGrievance(id);
+    if (!res.error) {
+      toast.success("Grievance record removed!");
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to delete record";
+      toast.error(errorMsg);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
+
+  const grievances = data?.grievances || [];
+  const openCount = data?.openGrievancesCount || 0;
+  const activeCommittees = data?.activeCommitteesCount || 4;
+  const maternityCount = data?.maternityLeavesCount || 45;
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "Resolved":
+        return <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold">Resolved</span>;
+      case "In Progress":
+        return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">In Progress</span>;
+      default:
+        return <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-semibold">Pending</span>;
+    }
   };
 
   return (
@@ -34,7 +112,7 @@ export default function WorkerSocialPage() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Active Committees</p>
-              <h3 className="text-2xl font-bold mt-1">4</h3>
+              <h3 className="text-2xl font-bold mt-1">{activeCommittees}</h3>
             </div>
             <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
               <Users className="w-5 h-5" />
@@ -51,7 +129,7 @@ export default function WorkerSocialPage() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Health & Maternity</p>
-              <h3 className="text-2xl font-bold mt-1">45 <span className="text-sm font-normal text-muted-foreground">Maternity Leaves</span></h3>
+              <h3 className="text-2xl font-bold mt-1">{maternityCount} <span className="text-sm font-normal text-muted-foreground">Maternity Leaves</span></h3>
             </div>
             <div className="p-2 bg-rose-100 rounded-lg text-rose-600">
               <HeartPulse className="w-5 h-5" />
@@ -70,7 +148,7 @@ export default function WorkerSocialPage() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Open Grievances</p>
-              <h3 className="text-2xl font-bold mt-1">2 <span className="text-sm font-normal text-muted-foreground">Pending</span></h3>
+              <h3 className="text-2xl font-bold mt-1">{openCount} <span className="text-sm font-normal text-muted-foreground">Pending</span></h3>
             </div>
             <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
               <MessageSquareWarning className="w-5 h-5" />
@@ -86,37 +164,69 @@ export default function WorkerSocialPage() {
         <div className="p-4 border-b border-border bg-muted/20">
           <h3 className="font-semibold text-lg">Recent Grievances</h3>
         </div>
-        <table className="w-full text-left text-sm">
-          <thead className="bg-muted/50 text-muted-foreground">
-            <tr>
-              <th className="p-4 font-medium">Grievance Type</th>
-              <th className="p-4 font-medium">Date Received</th>
-              <th className="p-4 font-medium">Department</th>
-              <th className="p-4 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            <tr>
-              <td className="p-4 font-medium">Leave Approval Delay</td>
-              <td className="p-4">Oct 10, 2023</td>
-              <td className="p-4 text-muted-foreground">Sewing Line 4</td>
-              <td className="p-4"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">In Progress</span></td>
-            </tr>
-            <tr>
-              <td className="p-4 font-medium">Canteen Food Quality</td>
-              <td className="p-4">Oct 05, 2023</td>
-              <td className="p-4 text-muted-foreground">Multiple</td>
-              <td className="p-4"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Resolved</span></td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-muted/50 text-muted-foreground">
+              <tr>
+                <th className="p-4 font-medium">Grievance Type</th>
+                <th className="p-4 font-medium">Date Received</th>
+                <th className="p-4 font-medium">Department</th>
+                <th className="p-4 font-medium">Status</th>
+                <th className="p-4 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {grievances.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-muted-foreground">No grievances logged yet.</td>
+                </tr>
+              ) : (
+                grievances.map((grievance: any) => (
+                  <tr key={grievance._id || grievance.id} className="hover:bg-muted/10 transition-colors">
+                    <td className="p-4 font-medium">
+                      <div className="font-semibold">{grievance.grievanceType}</div>
+                      <div className="text-xs text-muted-foreground truncate max-w-xs" title={grievance.description}>
+                        {grievance.description}
+                      </div>
+                    </td>
+                    <td className="p-4 text-muted-foreground">{grievance.dateReceived}</td>
+                    <td className="p-4">{grievance.department}</td>
+                    <td className="p-4">
+                      <select 
+                        value={grievance.status}
+                        onChange={(e) => handleStatusChange(grievance._id || grievance.id, e.target.value)}
+                        className="bg-transparent text-sm border-none focus:ring-0 cursor-pointer font-semibold outline-none"
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                      </select>
+                    </td>
+                    <td className="p-4 text-right">
+                      <button 
+                        onClick={() => handleDelete(grievance._id || grievance.id)}
+                        className="text-red-600 hover:text-red-800 transition-colors p-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Grievance">
         <form onSubmit={handleSave} className="space-y-4">
           <div className="space-y-1">
             <label className="text-sm font-medium">Grievance Type</label>
-            <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none">
+            <select 
+              value={grievanceType}
+              onChange={(e) => setGrievanceType(e.target.value)}
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none"
+            >
               <option>Leave/Salary Issue</option>
               <option>Health & Safety</option>
               <option>Harassment/Abuse</option>
@@ -126,16 +236,34 @@ export default function WorkerSocialPage() {
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium">Description</label>
-            <textarea required placeholder="Describe the grievance..." className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none h-24 resize-none"></textarea>
+            <textarea 
+              required 
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe the grievance..." 
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none h-24 resize-none"
+            ></textarea>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-medium">Date Received</label>
-              <input type="date" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none" />
+              <input 
+                type="date" 
+                required 
+                value={dateReceived}
+                onChange={(e) => setDateReceived(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none" 
+              />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Department</label>
-              <input type="text" placeholder="e.g., Sewing Line 2" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none" />
+              <input 
+                type="text" 
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                placeholder="e.g., Sewing Line 2" 
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none" 
+              />
             </div>
           </div>
           <div className="pt-4 flex justify-end gap-3 mt-6">

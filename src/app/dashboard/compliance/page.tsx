@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Scale, FileWarning, CheckCircle2, ShieldAlert, Plus, Download, BarChart2, FileText, Users, AlertTriangle, CheckCircle, Clock, FileBadge, Calendar, UploadCloud } from "lucide-react";
+import { Scale, FileWarning, CheckCircle2, ShieldAlert, Plus, Download, BarChart2, FileText, Users, AlertTriangle, CheckCircle, Clock, FileBadge, Calendar, UploadCloud, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useGetComplianceOverviewQuery, useCreateCAPMutation, useCreateLegalDocMutation, useCreateCommitteeMutation } from "@/lib/redux/slices/complianceApi";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -27,52 +28,98 @@ const auditTrendsData = [
   { month: 'Jun', findings: 6 },
 ];
 
-const CAP_LIST = [
-  { id: 'CAP-001', issue: 'Secondary containment missing for chemical drum', type: 'Internal Audit', deadline: '2023-10-15', severity: 'High', status: 'Overdue' },
-  { id: 'CAP-002', issue: 'Fire extinguisher access blocked in cutting section', type: 'Brand Audit', deadline: '2023-11-30', severity: 'Critical', status: 'In Progress' },
-  { id: 'CAP-003', issue: 'Missing PPE in dyeing floor', type: 'Third-Party (Sedex)', deadline: '2023-12-15', severity: 'Medium', status: 'Open' },
-  { id: 'CAP-004', issue: 'Worker training records incomplete', type: 'Internal Audit', deadline: '2023-09-10', severity: 'Low', status: 'Closed' },
-];
-
-const LEGAL_DOCS = [
-  { id: 'DOC-001', name: 'Environmental Clearance Certificate (ECC)', authority: 'Department of Environment', issueDate: '2023-01-10', expiryDate: '2024-01-09', status: 'Expiring Soon' },
-  { id: 'DOC-002', name: 'Fire Safety License', authority: 'Fire Service & Civil Defense', issueDate: '2023-05-20', expiryDate: '2023-11-20', status: 'Expired' },
-  { id: 'DOC-003', name: 'Trade License', authority: 'City Corporation', issueDate: '2023-07-01', expiryDate: '2024-06-30', status: 'Valid' },
-  { id: 'DOC-004', name: 'Boiler Operation Certificate', authority: 'Office of the Chief Inspector of Boilers', issueDate: '2023-02-15', expiryDate: '2024-02-14', status: 'Valid' },
-];
-
-const COMMITTEES = [
-  { id: 'COM-001', name: 'Participation Committee (PC)', members: 15, lastMeeting: '2023-10-05', nextMeeting: '2023-11-05', status: 'Active' },
-  { id: 'COM-002', name: 'Safety Committee', members: 12, lastMeeting: '2023-09-20', nextMeeting: '2023-10-20', status: 'Active' },
-  { id: 'COM-003', name: 'Anti-Harassment Committee', members: 8, lastMeeting: '2023-08-15', nextMeeting: '2023-11-15', status: 'Active' },
-];
-
 type TabType = 'dashboard' | 'audits' | 'legal' | 'committees';
 
 export default function CompliancePage() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
-  
+  const { data: complianceData, isLoading } = useGetComplianceOverviewQuery();
+  const [createCAP] = useCreateCAPMutation();
+  const [createLegalDoc] = useCreateLegalDocMutation();
+  const [createCommittee] = useCreateCommitteeMutation();
+
+  const caps = complianceData?.caps || [];
+  const legalDocs = complianceData?.legalDocs || [];
+  const committees = complianceData?.committees || [];
+
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddDocModalOpen, setIsAddDocModalOpen] = useState(false);
   const [isAddCommitteeModalOpen, setIsAddCommitteeModalOpen] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const rawSeverity = formData.get("severity") as string;
+    const severity = rawSeverity.startsWith("Critical") ? "Critical" : rawSeverity.startsWith("Low") ? "Low" : rawSeverity;
+
+    const payload = {
+      id: `CAP-${Date.now().toString().slice(-3)}`,
+      issue: formData.get("issue") as string,
+      type: formData.get("type") as string,
+      severity,
+      deadline: formData.get("deadline") as string,
+      assignee: formData.get("assignee") as string,
+      status: "Open"
+    };
+
+    const res = await createCAP(payload);
     setIsModalOpen(false);
-    toast.success("Audit finding and CAP logged successfully!");
+
+    if (!res.error) {
+      toast.success("Audit finding and CAP logged successfully!");
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to log finding";
+      toast.error(errorMsg);
+    }
   };
 
-  const handleAddDocSave = (e: React.FormEvent) => {
+  const handleAddDocSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const payload = {
+      id: `DOC-${Date.now().toString().slice(-3)}`,
+      name: formData.get("name") as string,
+      authority: formData.get("authority") as string,
+      issueDate: formData.get("issueDate") as string,
+      expiryDate: formData.get("expiryDate") as string,
+      status: "Valid"
+    };
+
+    const res = await createLegalDoc(payload);
     setIsAddDocModalOpen(false);
-    toast.success("Document uploaded and saved to repository!");
+
+    if (!res.error) {
+      toast.success("Document uploaded and saved to repository!");
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to upload document";
+      toast.error(errorMsg);
+    }
   };
 
-  const handleAddCommitteeSave = (e: React.FormEvent) => {
+  const handleAddCommitteeSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    const payload = {
+      id: `COM-${Date.now().toString().slice(-3)}`,
+      name: formData.get("name") as string,
+      members: Number(formData.get("members")),
+      lastMeeting: formData.get("lastMeeting") as string,
+      nextMeeting: formData.get("nextMeeting") as string,
+      status: "Active"
+    };
+
+    const res = await createCommittee(payload);
     setIsAddCommitteeModalOpen(false);
-    toast.success("New committee created and scheduled successfully!");
+
+    if (!res.error) {
+      toast.success("New committee created and scheduled successfully!");
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to create committee";
+      toast.error(errorMsg);
+    }
   };
 
   const handleDownloadReport = () => {
@@ -281,7 +328,7 @@ export default function CompliancePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {CAP_LIST.map((cap) => (
+                  {caps.map((cap: any) => (
                     <tr key={cap.id} className="hover:bg-muted/20 transition-colors">
                       <td className="p-4 font-medium text-muted-foreground">{cap.id}</td>
                       <td className="p-4 font-medium text-foreground max-w-xs truncate" title={cap.issue}>{cap.issue}</td>
@@ -321,7 +368,7 @@ export default function CompliancePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {LEGAL_DOCS.map((doc) => (
+                  {legalDocs.map((doc: any) => (
                     <tr key={doc.id} className="hover:bg-muted/20 transition-colors">
                       <td className="p-4 font-medium text-foreground flex items-center">
                         <FileText className="w-4 h-4 text-muted-foreground mr-2" /> {doc.name}
@@ -362,7 +409,7 @@ export default function CompliancePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {COMMITTEES.map((com) => (
+                  {committees.map((com: any) => (
                     <tr key={com.id} className="hover:bg-muted/20 transition-colors">
                       <td className="p-4 font-medium text-foreground">{com.name}</td>
                       <td className="p-4 text-muted-foreground flex items-center">
@@ -388,6 +435,7 @@ export default function CompliancePage() {
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Issue Description / Finding</label>
             <textarea 
+              name="issue"
               required 
               placeholder="Detailed description of the non-compliance..." 
               className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all h-24 resize-none" 
@@ -397,7 +445,7 @@ export default function CompliancePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Audit Type</label>
-              <select className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all appearance-none">
+              <select name="type" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all appearance-none">
                 <option>Internal Audit</option>
                 <option>Third-Party Audit (e.g., Sedex, BSCI)</option>
                 <option>Brand Audit (e.g., H&M, Zara)</option>
@@ -406,7 +454,7 @@ export default function CompliancePage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Severity</label>
-              <select className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all appearance-none">
+              <select name="severity" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all appearance-none">
                 <option>Critical (Zero Tolerance)</option>
                 <option>High</option>
                 <option>Medium</option>
@@ -416,6 +464,7 @@ export default function CompliancePage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Resolution Deadline</label>
               <input 
+                name="deadline"
                 type="date" 
                 required 
                 className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all" 
@@ -424,6 +473,7 @@ export default function CompliancePage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Assignee (Responsible Person)</label>
               <input 
+                name="assignee"
                 type="text" 
                 placeholder="e.g., HR Manager" 
                 required 
@@ -450,6 +500,7 @@ export default function CompliancePage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Document / Permit Name</label>
               <input 
+                name="name"
                 type="text" 
                 placeholder="e.g., Environmental Clearance" 
                 required 
@@ -459,6 +510,7 @@ export default function CompliancePage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Issuing Authority</label>
               <input 
+                name="authority"
                 type="text" 
                 placeholder="e.g., Department of Environment" 
                 required 
@@ -468,6 +520,7 @@ export default function CompliancePage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Issue Date</label>
               <input 
+                name="issueDate"
                 type="date" 
                 required 
                 className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all" 
@@ -476,6 +529,7 @@ export default function CompliancePage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Expiry Date</label>
               <input 
+                name="expiryDate"
                 type="date" 
                 required 
                 className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all" 
@@ -510,6 +564,7 @@ export default function CompliancePage() {
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Committee Name</label>
             <input 
+              name="name"
               type="text" 
               placeholder="e.g., Safety & Health Committee" 
               required 
@@ -520,6 +575,7 @@ export default function CompliancePage() {
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Total Members</label>
             <input 
+              name="members"
               type="number" 
               placeholder="e.g., 12" 
               required
@@ -531,6 +587,7 @@ export default function CompliancePage() {
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Formation / Last Meeting Date</label>
             <input 
+              name="lastMeeting"
               type="date" 
               required 
               className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all" 
@@ -541,6 +598,7 @@ export default function CompliancePage() {
             <label className="text-sm font-medium text-foreground">Next Scheduled Meeting</label>
             <div className="relative">
               <input 
+                name="nextMeeting"
                 type="date" 
                 required 
                 className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all" 

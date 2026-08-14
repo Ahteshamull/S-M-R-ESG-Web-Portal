@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Zap, Activity, Battery, Plus, Table2, ShieldCheck, Flame, Cpu, Download } from "lucide-react";
+import { Zap, Activity, Battery, Plus, Table2, ShieldCheck, Flame, Cpu, Download, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { exportEnergyToExcel } from "@/lib/exportEnergyExcel";
+import { useGetEnergyLogsQuery, useCreateEnergyLogMutation } from "@/lib/redux/slices/energyApi";
 
 interface EnergyLog {
-  id: string;
+  _id?: string;
+  id?: string;
   month: string;
   gas: number;
   diesel: number;
@@ -16,16 +18,11 @@ interface EnergyLog {
   shipped: number;
 }
 
-const initialData: EnergyLog[] = [
-  { id: '1', month: 'JAN', gas: 6836.30, diesel: 800, electricity: 34397, shipped: 356324 },
-  { id: '2', month: 'FEB', gas: 4350.40, diesel: 1200, electricity: 53182, shipped: 181992 },
-  { id: '3', month: 'MAR', gas: 5719.20, diesel: 800, electricity: 61385, shipped: 377046 },
-  { id: '4', month: 'APR', gas: 6159.90, diesel: 1200, electricity: 59532, shipped: 277081 },
-  { id: '5', month: 'MAY', gas: 6662.18, diesel: 1200, electricity: 70909, shipped: 334586 },
-];
+const initialData: EnergyLog[] = [];
 
 export default function EnergyPage() {
-  const [energyLogs, setEnergyLogs] = useState<EnergyLog[]>(initialData);
+  const { data: energyLogs = [], isLoading } = useGetEnergyLogsQuery();
+  const [createEnergyLog, { isLoading: isSaving }] = useCreateEnergyLogMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Form State
@@ -35,28 +32,31 @@ export default function EnergyPage() {
   const [electricityVal, setElectricityVal] = useState<number | "">("");
   const [shippedVal, setShippedVal] = useState<number | "">("");
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (gasVal === "" || dieselVal === "" || electricityVal === "" || shippedVal === "") {
       toast.error("Please fill all consumption and shipped fields.");
       return;
     }
 
-    const newLog: EnergyLog = {
-      id: Date.now().toString(),
+    const payload = {
       month: logMonth,
-      gas: gasVal as number,
-      diesel: dieselVal as number,
-      electricity: electricityVal as number,
-      shipped: shippedVal as number
+      gas: Number(gasVal),
+      diesel: Number(dieselVal),
+      electricity: Number(electricityVal),
+      shipped: Number(shippedVal)
     };
 
-    setEnergyLogs([...energyLogs, newLog]);
-    setIsModalOpen(false);
-    toast.success("Energy usage logged successfully!");
-    
-    // Reset form
-    setGasVal(""); setDieselVal(""); setElectricityVal(""); setShippedVal("");
+    const res = await createEnergyLog(payload);
+
+    if (!res.error) {
+      setIsModalOpen(false);
+      toast.success("Energy usage logged successfully!");
+      setGasVal(""); setDieselVal(""); setElectricityVal(""); setShippedVal("");
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to log energy usage";
+      toast.error(errorMsg);
+    }
   };
 
   // Calculations for Totals

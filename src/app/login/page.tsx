@@ -4,31 +4,44 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Leaf, Lock, Mail, ArrowRight, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import toast from "react-hot-toast";
+import { useLoginMutation } from "@/lib/redux/slices/authApi";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [login, { isLoading }] = useLoginMutation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
     
-    setIsLoading(true);
+    setErrorMsg("");
 
-    // Mock API call delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    const res = await login({ email, password });
 
-    // Set a mock auth token in cookies (expires in 1 day)
-    const expires = new Date();
-    expires.setTime(expires.getTime() + 1 * 24 * 60 * 60 * 1000);
-    document.cookie = `esg_auth_token=mock-jwt-token-123;expires=${expires.toUTCString()};path=/`;
+    if (res.error) {
+      const errorData = (res.error as any).data;
+      const message = errorData?.message || "Invalid credentials";
+      setErrorMsg(message);
+      toast.error(message);
+      return;
+    }
 
-    // Redirect to dashboard
+    const data = res.data;
+    if (data?.token) {
+      const expires = new Date();
+      expires.setTime(expires.getTime() + 1 * 24 * 60 * 60 * 1000);
+      document.cookie = `esg_auth_token=${data.token};expires=${expires.toUTCString()};path=/`;
+    }
+
+    toast.success("Successfully logged in!");
     router.push("/dashboard");
-    router.refresh(); // Force refresh to apply middleware changes immediately
+    router.refresh();
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden transition-colors duration-300">

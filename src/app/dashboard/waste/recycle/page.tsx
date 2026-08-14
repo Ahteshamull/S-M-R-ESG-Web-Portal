@@ -16,13 +16,13 @@ interface RecycleRecord {
   revenue: number;
 }
 
-const initialData: RecycleRecord[] = [
-  { id: '1', date: '2024-05-10', materialType: 'Plastic', quantity: 250, vendor: 'EcoPlast Recyclers', revenue: 1250 },
-  { id: '2', date: '2024-05-12', materialType: 'Paper & Cardboard', quantity: 400, vendor: 'GreenPaper Ltd', revenue: 800 },
-];
+const initialData: RecycleRecord[] = [];
+
+import { useGetWasteRecycleQuery, useCreateWasteRecycleMutation } from "@/lib/redux/slices/wasteApi";
 
 export default function RecycleWastePage() {
-  const [records, setRecords] = useState<RecycleRecord[]>(initialData);
+  const { data: records = [], isLoading } = useGetWasteRecycleQuery();
+  const [createWasteRecycle] = useCreateWasteRecycleMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
@@ -32,15 +32,14 @@ export default function RecycleWastePage() {
   const [vendor, setVendor] = useState("");
   const [revenue, setRevenue] = useState<number | "">("");
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!date || !quantity || !vendor) {
       toast.error("Please fill all required fields");
       return;
     }
 
-    const newRecord: RecycleRecord = {
-      id: Date.now().toString(),
+    const newRecord = {
       date,
       materialType,
       quantity: Number(quantity),
@@ -48,12 +47,17 @@ export default function RecycleWastePage() {
       revenue: Number(revenue) || 0
     };
 
-    setRecords([newRecord, ...records]);
+    const res = await createWasteRecycle(newRecord);
     setIsModalOpen(false);
-    toast.success("Recycle record logged successfully!");
-    
-    // reset
-    setDate(""); setQuantity(""); setVendor(""); setRevenue("");
+
+    if (!res.error) {
+      toast.success("Recycle record logged successfully!");
+      // reset
+      setDate(""); setQuantity(""); setVendor(""); setRevenue("");
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to log recycle record";
+      toast.error(errorMsg);
+    }
   };
 
   const totalQuantity = records.reduce((sum, r) => sum + r.quantity, 0);

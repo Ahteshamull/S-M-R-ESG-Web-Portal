@@ -1,56 +1,31 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Cloud, Factory, Truck, Plus, FileText, Download, TrendingDown, Leaf, Activity, ChevronDown, Pencil } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Cloud, Factory, Truck, Plus, FileText, Download, TrendingDown, Leaf, Activity, ChevronDown, Pencil, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { apiRequest } from "@/lib/api";
+import { useGetCarbonSummaryQuery, useCreateCarbonEntryMutation, useUpdateEmissionFactorMutation } from "@/lib/redux/slices/carbonApi";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const trendData = [
-  { month: 'Jan', scope1: 18, scope2: 45, scope3: 90 },
-  { month: 'Feb', scope1: 17, scope2: 42, scope3: 88 },
-  { month: 'Mar', scope1: 19, scope2: 48, scope3: 95 },
-  { month: 'Apr', scope1: 16, scope2: 40, scope3: 85 },
-  { month: 'May', scope1: 18, scope2: 44, scope3: 92 },
-  { month: 'Jun', scope1: 20, scope2: 50, scope3: 100 },
-];
-
-const targetData = [
-  { name: 'Scope 1', actual: 108, target: 120 },
-  { name: 'Scope 2', actual: 269, target: 280 },
-  { name: 'Scope 3', actual: 550, target: 600 },
-];
-
-const INITIAL_FACTORS = {
-  "1": [
-    { id: 's1_1', activity: 'Diesel (Stationary Boiler)', unit: 'Liters', factor: 0.00268, type: 'Fuel' },
-    { id: 's1_2', activity: 'Natural Gas', unit: 'm³', factor: 0.00202, type: 'Fuel' },
-    { id: 's1_3', activity: 'Company Vehicles (Petrol)', unit: 'Liters', factor: 0.00231, type: 'Transport' },
-  ],
-  "2": [
-    { id: 's2_1', activity: 'Grid Electricity', unit: 'kWh', factor: 0.0005, type: 'Electricity' },
-    { id: 's2_2', activity: 'Purchased Steam', unit: 'kg', factor: 0.00017, type: 'Heating' },
-  ],
-  "3": [
-    { id: 's3_1', activity: 'Business Travel (Air)', unit: 'km', factor: 0.00015, type: 'Travel' },
-    { id: 's3_2', activity: 'Waste to Landfill', unit: 'kg', factor: 0.0005, type: 'Waste' },
-    { id: 's3_3', activity: 'Purchased Goods (Textiles)', unit: 'kg', factor: 0.015, type: 'Supply Chain' },
-  ]
-};
+const trendData: any[] = [];
+const targetData: any[] = [];
 
 type FactorType = { id: string; activity: string; unit: string; factor: number; type: string; scopeName?: string; scopeId?: "1" | "2" | "3" };
 
 export default function CarbonPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'factors'>('dashboard');
+  const { data: carbonData, isLoading } = useGetCarbonSummaryQuery();
+  const [createCarbonEntry] = useCreateCarbonEntryMutation();
+  const [updateEmissionFactor] = useUpdateEmissionFactorMutation();
   
   // State for Factors
-  const [emissionFactors, setEmissionFactors] = useState(INITIAL_FACTORS);
   const [isEditFactorModalOpen, setIsEditFactorModalOpen] = useState(false);
   const [editingFactor, setEditingFactor] = useState<FactorType | null>(null);
   const [editFactorValue, setEditFactorValue] = useState<number | "">("");
@@ -61,17 +36,25 @@ export default function CarbonPage() {
   const [calcActivityId, setCalcActivityId] = useState<string>("");
   const [calcAmount, setCalcAmount] = useState<number | "">("");
 
+  // Group factors by scope dynamically from RTK Query data
+  const emissionFactors = useMemo(() => {
+    const s1 = (carbonData?.factors || []).filter((f: any) => f.scope === '1').map((f: any) => ({ id: f._id || f.id, activity: f.activity, unit: f.unit, factor: f.factor, type: f.type }));
+    const s2 = (carbonData?.factors || []).filter((f: any) => f.scope === '2').map((f: any) => ({ id: f._id || f.id, activity: f.activity, unit: f.unit, factor: f.factor, type: f.type }));
+    const s3 = (carbonData?.factors || []).filter((f: any) => f.scope === '3').map((f: any) => ({ id: f._id || f.id, activity: f.activity, unit: f.unit, factor: f.factor, type: f.type }));
+    return { "1": s1, "2": s2, "3": s3 };
+  }, [carbonData]);
+
   // Combine factors for library view
   const allFactors = useMemo(() => {
     return [
-      ...emissionFactors["1"].map(f => ({ ...f, scopeName: 'Scope 1', scopeId: "1" as const })),
-      ...emissionFactors["2"].map(f => ({ ...f, scopeName: 'Scope 2', scopeId: "2" as const })),
-      ...emissionFactors["3"].map(f => ({ ...f, scopeName: 'Scope 3', scopeId: "3" as const })),
+      ...emissionFactors["1"].map((f: any) => ({ ...f, scopeName: 'Scope 1', scopeId: "1" as const })),
+      ...emissionFactors["2"].map((f: any) => ({ ...f, scopeName: 'Scope 2', scopeId: "2" as const })),
+      ...emissionFactors["3"].map((f: any) => ({ ...f, scopeName: 'Scope 3', scopeId: "3" as const })),
     ];
   }, [emissionFactors]);
 
   const activeFactor = useMemo(() => {
-    return emissionFactors[calcScope].find(f => f.id === calcActivityId) || null;
+    return emissionFactors[calcScope].find((f: any) => f.id === calcActivityId) || null;
   }, [emissionFactors, calcScope, calcActivityId]);
 
   const calculatedEmissions = useMemo(() => {
@@ -88,11 +71,26 @@ export default function CarbonPage() {
     setIsCalcModalOpen(true);
   };
 
-  const handleSaveEmissions = (e: React.FormEvent) => {
+  const handleSaveEmissions = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeFactor || calcAmount === "") return;
+    
     setIsCalcModalOpen(false);
-    toast.success(`${calculatedEmissions} tCO2e added to Scope ${calcScope} emissions!`);
+
+    const payload = {
+      scope: calcScope,
+      activityId: activeFactor.id,
+      amount: Number(calcAmount),
+    };
+
+    const res = await createCarbonEntry(payload);
+
+    if (!res.error) {
+      toast.success(`${calculatedEmissions} tCO2e added to Scope ${calcScope} emissions!`);
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to save emissions entry";
+      toast.error(errorMsg);
+    }
   };
 
   const openEditFactorModal = (factor: FactorType) => {
@@ -101,22 +99,23 @@ export default function CarbonPage() {
     setIsEditFactorModalOpen(true);
   };
 
-  const handleSaveFactor = (e: React.FormEvent) => {
+  const handleSaveFactor = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingFactor || editFactorValue === "" || !editingFactor.scopeId) return;
 
-    setEmissionFactors(prev => {
-      const updatedScopeFactors = prev[editingFactor.scopeId!].map(f => {
-        if (f.id === editingFactor.id) {
-          return { ...f, factor: Number(editFactorValue) };
-        }
-        return f;
-      });
-      return { ...prev, [editingFactor.scopeId!]: updatedScopeFactors };
+    const res = await updateEmissionFactor({
+      id: editingFactor.id,
+      factor: Number(editFactorValue),
     });
 
     setIsEditFactorModalOpen(false);
-    toast.success(`${editingFactor.activity} emission factor updated!`);
+
+    if (!res.error) {
+      toast.success(`${editingFactor.activity} emission factor updated!`);
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to update factor";
+      toast.error(errorMsg);
+    }
   };
 
   const handleDownloadReport = () => {
@@ -169,8 +168,8 @@ export default function CarbonPage() {
           <div className="flex justify-between items-start relative">
             <div>
               <p className="text-sm font-medium text-muted-foreground flex items-center"><Factory className="w-4 h-4 mr-1.5 text-gray-500" /> Scope 1</p>
-              <h3 className="text-3xl font-bold mt-2">108.0</h3>
-              <p className="text-xs text-emerald-500 mt-2 flex items-center"><TrendingDown className="w-3 h-3 mr-1" /> 2.1% (tCO2e)</p>
+              <h3 className="text-3xl font-bold mt-2">{(carbonData?.kpis?.scope1 || 0).toFixed(1)}</h3>
+              <p className="text-xs text-emerald-500 mt-2 flex items-center"><TrendingDown className="w-3 h-3 mr-1" /> tCO2e</p>
             </div>
           </div>
         </div>
@@ -180,8 +179,8 @@ export default function CarbonPage() {
           <div className="flex justify-between items-start relative">
             <div>
               <p className="text-sm font-medium text-muted-foreground flex items-center"><Cloud className="w-4 h-4 mr-1.5 text-blue-500" /> Scope 2</p>
-              <h3 className="text-3xl font-bold mt-2">269.0</h3>
-              <p className="text-xs text-red-500 mt-2 flex items-center"><TrendingDown className="w-3 h-3 mr-1 rotate-180" /> 1.5% (tCO2e)</p>
+              <h3 className="text-3xl font-bold mt-2">{(carbonData?.kpis?.scope2 || 0).toFixed(1)}</h3>
+              <p className="text-xs text-emerald-500 mt-2 flex items-center"><TrendingDown className="w-3 h-3 mr-1" /> tCO2e</p>
             </div>
           </div>
         </div>
@@ -191,8 +190,8 @@ export default function CarbonPage() {
           <div className="flex justify-between items-start relative">
             <div>
               <p className="text-sm font-medium text-muted-foreground flex items-center"><Truck className="w-4 h-4 mr-1.5 text-orange-500" /> Scope 3</p>
-              <h3 className="text-3xl font-bold mt-2">550.0</h3>
-              <p className="text-xs text-emerald-500 mt-2 flex items-center"><TrendingDown className="w-3 h-3 mr-1" /> 5.4% (tCO2e)</p>
+              <h3 className="text-3xl font-bold mt-2">{(carbonData?.kpis?.scope3 || 0).toFixed(1)}</h3>
+              <p className="text-xs text-emerald-500 mt-2 flex items-center"><TrendingDown className="w-3 h-3 mr-1" /> tCO2e</p>
             </div>
           </div>
         </div>
@@ -201,9 +200,9 @@ export default function CarbonPage() {
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
           <div className="flex justify-between items-start relative">
             <div>
-              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-400 flex items-center"><Activity className="w-4 h-4 mr-1.5" /> Intensity</p>
-              <h3 className="text-3xl font-bold mt-2 text-emerald-900 dark:text-emerald-50">0.42</h3>
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2 flex items-center">tCO2e / unit (Avg: 0.55)</p>
+              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-400 flex items-center"><Activity className="w-4 h-4 mr-1.5" /> Total Emissions</p>
+              <h3 className="text-3xl font-bold mt-2 text-emerald-900 dark:text-emerald-50">{(carbonData?.kpis?.totalEmissions || 0).toFixed(1)}</h3>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2 flex items-center">tCO2e (All Scopes)</p>
             </div>
           </div>
         </div>
@@ -371,7 +370,7 @@ export default function CarbonPage() {
                   className="w-full bg-background border border-border rounded-xl pl-4 pr-10 py-3 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all"
                 >
                   <option value="" disabled>-- Select Activity for Scope {calcScope} --</option>
-                  {emissionFactors[calcScope].map(f => (
+                  {emissionFactors[calcScope].map((f: any) => (
                     <option key={f.id} value={f.id}>{f.activity} ({f.type})</option>
                   ))}
                 </select>

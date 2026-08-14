@@ -2,31 +2,41 @@
 
 import { 
   ArrowDownRight, ArrowUpRight, Cloud, Droplets, 
-  Zap, AlertTriangle, CheckCircle2, FileText 
+  Zap, AlertTriangle, CheckCircle2, FileText, Loader2 
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useGetDashboardSummaryQuery } from "@/lib/redux/slices/dashboardApi";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from "recharts";
 
-const esgTrendsData = [
-  { month: 'Jan', energy: 42, water: 65, carbon: 82 },
-  { month: 'Feb', energy: 38, water: 60, carbon: 78 },
-  { month: 'Mar', energy: 48, water: 75, carbon: 88 },
-  { month: 'Apr', energy: 40, water: 55, carbon: 70 },
-  { month: 'May', energy: 43, water: 62, carbon: 75 },
-  { month: 'Jun', energy: 46, water: 70, carbon: 85 },
-  { month: 'Jul', energy: 45, water: 68, carbon: 80 },
-];
+function cn(...inputs: any[]) {
+  return twMerge(clsx(inputs));
+}
 
 export default function DashboardOverview() {
   const router = useRouter();
+  const { data: summary, isLoading } = useGetDashboardSummaryQuery();
 
   const handleDownload = () => {
     toast.success("Generating ESG Report...");
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
+
+  const kpis = summary?.kpis || { totalEnergy: 0, totalWater: 0, totalCarbon: 0, complianceScore: 0 };
+  const esgTrendsData = summary?.trends || [];
+  const alerts = summary?.alerts || [];
 
   return (
     <div className="space-y-6">
@@ -58,7 +68,7 @@ export default function DashboardOverview() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total Energy</p>
-              <h3 className="text-2xl font-bold mt-1">45.2 <span className="text-sm font-normal text-muted-foreground">MWh</span></h3>
+              <h3 className="text-2xl font-bold mt-1">{kpis.totalEnergy} <span className="text-sm font-normal text-muted-foreground">MWh</span></h3>
             </div>
             <div className="p-2 bg-yellow-100 rounded-lg text-yellow-600">
               <Zap className="w-5 h-5" />
@@ -78,7 +88,7 @@ export default function DashboardOverview() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Water Usage</p>
-              <h3 className="text-2xl font-bold mt-1">12,450 <span className="text-sm font-normal text-muted-foreground">Liters</span></h3>
+              <h3 className="text-2xl font-bold mt-1">{kpis.totalWater.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">Liters</span></h3>
             </div>
             <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
               <Droplets className="w-5 h-5" />
@@ -98,7 +108,7 @@ export default function DashboardOverview() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Carbon (Scope 1+2)</p>
-              <h3 className="text-2xl font-bold mt-1">840 <span className="text-sm font-normal text-muted-foreground">tCO2e</span></h3>
+              <h3 className="text-2xl font-bold mt-1">{kpis.totalCarbon} <span className="text-sm font-normal text-muted-foreground">tCO2e</span></h3>
             </div>
             <div className="p-2 bg-gray-100 rounded-lg text-gray-600">
               <Cloud className="w-5 h-5" />
@@ -118,7 +128,7 @@ export default function DashboardOverview() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Compliance Score</p>
-              <h3 className="text-2xl font-bold mt-1">94<span className="text-sm font-normal text-muted-foreground">/100</span></h3>
+              <h3 className="text-2xl font-bold mt-1">{kpis.complianceScore}<span className="text-sm font-normal text-muted-foreground">/100</span></h3>
             </div>
             <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
               <CheckCircle2 className="w-5 h-5" />
@@ -187,20 +197,29 @@ export default function DashboardOverview() {
           <div className="glass-card rounded-xl p-6">
             <h3 className="font-semibold text-lg mb-4">Active Alerts</h3>
             <div className="space-y-3">
-              <div className="flex gap-3 p-3 bg-red-50 text-red-900 rounded-lg border border-red-100">
-                <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">Water usage spike</p>
-                  <p className="text-xs opacity-80 mt-0.5">Dyeing unit 3 exceeded daily limit by 15%</p>
+              {alerts.length === 0 ? (
+                <div className="flex gap-3 p-3 bg-muted/30 text-muted-foreground rounded-lg border border-border/50 justify-center">
+                  <p className="text-sm font-medium">No active alerts</p>
                 </div>
-              </div>
-              <div className="flex gap-3 p-3 bg-yellow-50 text-yellow-900 rounded-lg border border-yellow-100">
-                <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">Permit expiring soon</p>
-                  <p className="text-xs opacity-80 mt-0.5">Fire safety license expires in 12 days</p>
-                </div>
-              </div>
+              ) : (
+                alerts.map((alert: any) => (
+                  <div 
+                    key={alert.id} 
+                    className={cn(
+                      "flex gap-3 p-3 rounded-lg border",
+                      alert.type === 'critical' 
+                        ? "bg-red-50 text-red-900 border-red-100 dark:bg-red-950/20 dark:text-red-300 dark:border-red-900/50" 
+                        : "bg-yellow-50 text-yellow-900 border-yellow-100 dark:bg-yellow-950/20 dark:text-yellow-300 dark:border-yellow-900/50"
+                    )}
+                  >
+                    <AlertTriangle className={cn("w-5 h-5 flex-shrink-0", alert.type === 'critical' ? "text-red-600 dark:text-red-400" : "text-yellow-600 dark:text-yellow-400")} />
+                    <div>
+                      <p className="text-sm font-medium">{alert.title}</p>
+                      <p className="text-xs opacity-80 mt-0.5">{alert.description}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

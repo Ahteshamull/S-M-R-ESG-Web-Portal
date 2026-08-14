@@ -4,11 +4,7 @@ import Link from "next/link";
 import { Trash2, Recycle, ClipboardList, PackageSearch, Factory, ChevronRight } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'General Waste', value: 4200 },
-  { name: 'Recycled Waste', value: 2800 },
-  { name: 'Hazardous Waste', value: 120 },
-];
+const data: any[] = [];
 const COLORS = ['#10b981', '#3b82f6', '#f43f5e'];
 
 export default function WasteDashboardHub() {

@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Plus, PackageSearch, Factory, AlertTriangle, Trash2, Download } from "lucide-react";
+import { ArrowLeft, Plus, PackageSearch, Factory, AlertTriangle, Trash2, Download, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
 import toast from "react-hot-toast";
 import { exportInventoryExcel } from "@/lib/exportWasteExcel";
 
 export interface InventoryRecord {
-  id: string;
+  _id?: string;
+  id?: string;
   wasteName: string;
   sourceOfWaste: string;
   wasteClassification: "Non-Hazardous" | "Hazardous";
@@ -49,8 +50,11 @@ const initialData: InventoryRecord[] = [
   }
 ];
 
+import { useGetWasteInventoryQuery, useCreateWasteInventoryMutation } from "@/lib/redux/slices/wasteApi";
+
 export default function WasteInventoryPage() {
-  const [records, setRecords] = useState<InventoryRecord[]>(initialData);
+  const { data: records = [], isLoading } = useGetWasteInventoryQuery();
+  const [createWasteInventory] = useCreateWasteInventoryMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
@@ -62,11 +66,10 @@ export default function WasteInventoryPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const newRecord: InventoryRecord = {
-      id: Date.now().toString(),
+    const newRecord = {
       wasteName: formData.wasteName || '',
       sourceOfWaste: formData.sourceOfWaste || '',
       wasteClassification: formData.wasteClassification as any || 'Non-Hazardous',
@@ -90,10 +93,16 @@ export default function WasteInventoryPage() {
       remarks: formData.remarks || ''
     };
 
-    setRecords([newRecord, ...records]);
+    const res = await createWasteInventory(newRecord);
     setIsModalOpen(false);
-    toast.success("Inventory updated successfully!");
-    setFormData({ wasteClassification: 'Non-Hazardous', unit: 'Kg', labeling: 'No', identification: 'Yes', ppe: 'No' });
+
+    if (!res.error) {
+      toast.success("Inventory updated successfully!");
+      setFormData({ wasteClassification: 'Non-Hazardous', unit: 'Kg', labeling: 'No', identification: 'Yes', ppe: 'No' });
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to save inventory record";
+      toast.error(errorMsg);
+    }
   };
 
   const totalGeneral = records.filter(r => r.wasteClassification === 'Non-Hazardous').reduce((sum, r) => sum + r.quantity, 0);

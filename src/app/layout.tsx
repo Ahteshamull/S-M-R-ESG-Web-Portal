@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NoSSR } from "@/components/no-ssr";
+import StoreProvider from "@/lib/redux/StoreProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,17 +29,19 @@ export default function RootLayout({
       translate="no"
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <NoSSR>
-            <Toaster position="bottom-right" />
-          </NoSSR>
-        </ThemeProvider>
+        <StoreProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <NoSSR>
+              <Toaster position="bottom-right" />
+            </NoSSR>
+          </ThemeProvider>
+        </StoreProvider>
       </body>
     </html>
   );

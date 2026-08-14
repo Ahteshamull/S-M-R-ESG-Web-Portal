@@ -17,25 +17,11 @@ export interface WasteGenerationRecord {
 const initialNonHazCols = ['Jhut', 'Paper cartoon', 'Paper Roll', 'Poly Bag & Gani', 'Moni Fabric', 'Loose Thread', 'Empty Cone', 'Iron Cloth', 'Plastics (Hanger)', 'Dust', 'Broken Chair', 'Water tank', 'Printed paper', 'Iron', 'Tin', 'Thai Aluminium', 'Food'];
 const initialHazCols = ['Empty containers (cleaning/sanitizing)', 'Batteries', 'Chemical drum (steel)', 'Chemical drum (plastic)', 'Fluorescent light bulb', 'Ink cartridges', 'Electronic waste'];
 
-const initialData: WasteGenerationRecord[] = [
-  {
-    id: '1', month: 'January',
-    nonHaz: {
-      'Jhut': 193258.7, 'Paper cartoon': 15939.8, 'Paper Roll': 12590.9, 'Poly Bag & Gani': 3596.3,
-      'Moni Fabric': 5101.5, 'Loose Thread': 4247.0, 'Empty Cone': 1476.2, 'Iron Cloth': 0,
-      'Plastics (Hanger)': 66.2, 'Dust': 29178.7, 'Broken Chair': 0, 'Water tank': 0,
-      'Printed paper': 240.0, 'Iron': 1352.7, 'Tin': 352.1, 'Thai Aluminium': 6.4, 'Food': 385.0
-    },
-    haz: {
-      'Empty containers (cleaning/sanitizing)': 261.5, 'Batteries': 45.0, 'Chemical drum (steel)': 0,
-      'Chemical drum (plastic)': 22.0, 'Fluorescent light bulb': 167.0, 'Ink cartridges': 126.0,
-      'Electronic waste': 31.0
-    }
-  }
-];
+import { useGetWasteTrackingQuery, useCreateWasteTrackingMutation } from "@/lib/redux/slices/wasteApi";
 
 export default function WasteGenerationPage() {
-  const [records, setRecords] = useState<WasteGenerationRecord[]>(initialData);
+  const { data: records = [], isLoading } = useGetWasteTrackingQuery();
+  const [createWasteTracking] = useCreateWasteTrackingMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"nonHaz" | "haz">("nonHaz");
 
@@ -74,7 +60,7 @@ export default function WasteGenerationPage() {
     toast.success("New field added successfully!");
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const parse = (val: string | undefined) => (!val || val === "") ? 0 : Number(val);
@@ -85,20 +71,24 @@ export default function WasteGenerationPage() {
     const hazData: Record<string, number> = {};
     hazCols.forEach(col => { hazData[col] = parse(hazState[col]); });
 
-    const newRecord: WasteGenerationRecord = {
-      id: Date.now().toString(),
+    const newRecord = {
       month,
       nonHaz: nonHazData,
       haz: hazData
     };
 
-    setRecords([...records, newRecord]);
+    const res = await createWasteTracking(newRecord);
     setIsModalOpen(false);
-    toast.success("Monthly record logged successfully!");
-    
-    // Reset inputs
-    setNonHazState({});
-    setHazState({});
+
+    if (!res.error) {
+      toast.success("Monthly record logged successfully!");
+      // Reset inputs
+      setNonHazState({});
+      setHazState({});
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to log tracking record";
+      toast.error(errorMsg);
+    }
   };
 
   return (

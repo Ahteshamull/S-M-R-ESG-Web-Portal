@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Droplets, CloudRain, RotateCcw, Plus, Table2, Trash2, PlusCircle, Download, Activity, FileCheck2 } from "lucide-react";
+import { Droplets, CloudRain, RotateCcw, Plus, Table2, Trash2, PlusCircle, Download, Activity, FileCheck2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
 import { exportWaterBalanceToExcel } from "@/lib/exportWaterExcel";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useGetWaterLogsQuery, useCreateWaterLogMutation } from "@/lib/redux/slices/waterApi";
 
 interface MeterReading {
   previous: number;
@@ -14,7 +15,8 @@ interface MeterReading {
 }
 
 interface WaterLog {
-  id: string;
+  _id?: string;
+  id?: string;
   month: string;
   withdrawals: MeterReading[];
   totalWithdrawal: number;
@@ -25,40 +27,7 @@ interface WaterLog {
   outletWater: number;
 }
 
-const initialData: WaterLog[] = [
-  { 
-    id: '1', month: 'January', 
-    withdrawals: [
-      { previous: 3955, present: 4081, difference: 126 },
-      { previous: 30, present: 118, difference: 88 }
-    ],
-    totalWithdrawal: 214,
-    boilers: [
-      { previous: 101, present: 135, difference: 34 },
-      { previous: 406, present: 429, difference: 23 }
-    ],
-    totalProduction: 57,
-    domestic: 157,
-    inletWater: 210,
-    outletWater: 150
-  },
-  { 
-    id: '2', month: 'February', 
-    withdrawals: [
-      { previous: 4081, present: 4197, difference: 116 },
-      { previous: 118, present: 203, difference: 85 }
-    ],
-    totalWithdrawal: 201,
-    boilers: [
-      { previous: 135, present: 161, difference: 26 },
-      { previous: 429, present: 445, difference: 16 }
-    ],
-    totalProduction: 42,
-    domestic: 159,
-    inletWater: 190,
-    outletWater: 140
-  }
-];
+const initialData: WaterLog[] = [];
 
 interface MeterInput {
   previous: number | "";
@@ -66,7 +35,8 @@ interface MeterInput {
 }
 
 export default function WaterPage() {
-  const [waterLogs, setWaterLogs] = useState<WaterLog[]>(initialData);
+  const { data: waterLogs = [], isLoading } = useGetWaterLogsQuery();
+  const [createWaterLog] = useCreateWaterLogMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [processLossesY, setProcessLossesY] = useState<number>(65.45);
 
@@ -91,7 +61,7 @@ export default function WaterPage() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const allWithdrawalsValid = withdrawalsInput.every(w => w.previous !== "" && w.present !== "");
@@ -130,14 +100,19 @@ export default function WaterPage() {
       outletWater: outletVal === "" ? 0 : Number(outletVal)
     };
 
-    setWaterLogs([...waterLogs, newLog]);
-    setIsModalOpen(false);
-    toast.success("Water usage logged successfully!");
-    
-    setWithdrawalsInput([{ previous: "", present: "" }]);
-    setBoilersInput([{ previous: "", present: "" }]);
-    setInletVal("");
-    setOutletVal("");
+    const res = await createWaterLog(newLog);
+
+    if (!res.error) {
+      setIsModalOpen(false);
+      toast.success("Water usage logged successfully!");
+      setWithdrawalsInput([{ previous: "", present: "" }]);
+      setBoilersInput([{ previous: "", present: "" }]);
+      setInletVal("");
+      setOutletVal("");
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to log water usage";
+      toast.error(errorMsg);
+    }
   };
 
   const chartData = waterLogs.map(log => ({

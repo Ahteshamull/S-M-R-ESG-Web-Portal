@@ -1,24 +1,62 @@
 "use client";
 
 import { useState } from "react";
-import { FlaskConical, FileCheck, Search, Trash2, ArrowLeft } from "lucide-react";
+import { FlaskConical, FileCheck, Search, Trash2, ArrowLeft, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { useGetChemicalsQuery, useCreateChemicalMutation, useDeleteChemicalMutation } from "@/lib/redux/slices/chemicalsApi";
 
 export default function ChemicalInventoryPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [chemicalToDelete, setChemicalToDelete] = useState<string | null>(null);
+  
+  const { data: chemicals = [], isLoading } = useGetChemicalsQuery();
+  const [createChemical] = useCreateChemicalMutation();
+  const [deleteChemical] = useDeleteChemicalMutation();
 
-  const handleSave = (e: React.FormEvent) => {
+  // Form State
+  const [chemName, setChemName] = useState("");
+  const [chemType, setChemType] = useState("");
+  const [chemQty, setChemQty] = useState("");
+  const [chemArea, setChemArea] = useState("");
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!chemName || !chemType) return;
+
+    const payload = {
+      date: new Date().toISOString().slice(0, 10),
+      chemicalName: chemName,
+      chemicalType: chemType,
+      quantity: chemQty || "0 Kg",
+      useArea: chemArea || "General Floor",
+      incheckStatus: "Submitted"
+    };
+
+    const res = await createChemical(payload);
+
+    if (!res.error) {
+      toast.success("New chemical added to inventory!");
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to add chemical";
+      toast.error(errorMsg);
+    }
     setIsAddModalOpen(false);
-    toast.success("New chemical added to inventory!");
+    setChemName(""); setChemType(""); setChemQty(""); setChemArea("");
   };
 
-  const handleDelete = () => {
-    toast.success(`Removed chemical successfully!`);
+  const handleDelete = async () => {
+    if (!chemicalToDelete) return;
+    const res = await deleteChemical(chemicalToDelete);
+    if (!res.error) {
+      toast.success(`Removed chemical successfully!`);
+    } else {
+      const errorMsg = (res.error as any).data?.message || "Failed to remove chemical";
+      toast.error(errorMsg);
+    }
+    setChemicalToDelete(null);
   };
 
   return (

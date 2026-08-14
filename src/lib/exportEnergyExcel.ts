@@ -30,31 +30,46 @@ export async function exportEnergyToExcel(data: EnergyExcelData) {
   ];
 
   // Title
+  // Title
   sheet.mergeCells('A1:J2');
   const titleCell = sheet.getCell('A1');
   titleCell.value = 'ENERGY CONSUMPTION & KPI REPORT (YTD)';
-  titleCell.font = { name: 'Arial', size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
-  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF004B87' } };
+  titleCell.font = { name: 'Segoe UI', size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF15803D' } }; // Dark Emerald
   titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+  // Metadata Row
+  sheet.mergeCells('A3:J3');
+  const metaCell = sheet.getCell('A3');
+  metaCell.value = 'Company Name: Apex Apparels Ltd.  |  Responsible Person: John Smith (Sustainability Manager)';
+  metaCell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF14532D' } }; // Dark Green text
+  metaCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } }; // Light Emerald
+  metaCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
   // Headers (Group Level)
   sheet.mergeCells('A4:A5');
-  sheet.getCell('A4').value = 'Month';
+  const monthHeader = sheet.getCell('A4');
+  monthHeader.value = 'Month';
+  monthHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF15803D' } };
+  monthHeader.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
   
   sheet.mergeCells('B4:D4');
-  sheet.getCell('B4').value = 'Natural Gas';
-  sheet.getCell('B4').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE6CC' } }; // Light Orange
-  sheet.getCell('B4').font = { color: { argb: 'FFD97706' }, bold: true };
+  const gasHeader = sheet.getCell('B4');
+  gasHeader.value = 'Natural Gas';
+  gasHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
+  gasHeader.font = { name: 'Segoe UI', color: { argb: 'FF14532D' }, bold: true, size: 11 };
   
   sheet.mergeCells('E4:G4');
-  sheet.getCell('E4').value = 'Diesel (Generators)';
-  sheet.getCell('E4').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } }; // Light Gray
-  sheet.getCell('E4').font = { color: { argb: 'FF4B5563' }, bold: true };
+  const dieselHeader = sheet.getCell('E4');
+  dieselHeader.value = 'Diesel (Generators)';
+  dieselHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
+  dieselHeader.font = { name: 'Segoe UI', color: { argb: 'FF14532D' }, bold: true, size: 11 };
   
   sheet.mergeCells('H4:J4');
-  sheet.getCell('H4').value = 'Purchased Electricity';
-  sheet.getCell('H4').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD1FAE5' } }; // Light Emerald
-  sheet.getCell('H4').font = { color: { argb: 'FF059669' }, bold: true };
+  const elecHeader = sheet.getCell('H4');
+  elecHeader.value = 'Purchased Electricity';
+  elecHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
+  elecHeader.font = { name: 'Segoe UI', color: { argb: 'FF14532D' }, bold: true, size: 11 };
 
   // Sub-Headers
   const subHeaders = [
@@ -65,18 +80,22 @@ export async function exportEnergyToExcel(data: EnergyExcelData) {
 
   subHeaders.forEach((header, index) => {
     const col = String.fromCharCode(66 + index); // Starts at B (66)
-    sheet.getCell(`${col}5`).value = header;
+    const cell = sheet.getCell(`${col}5`);
+    cell.value = header;
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF16A34A' } }; // Medium Emerald
+    cell.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
   });
 
-  // Style Headers
+  // Style Headers Borders & Alignment
   for (let r = 4; r <= 5; r++) {
     for (let c = 1; c <= 10; c++) {
       const cell = sheet.getCell(r, c);
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      if (!cell.font) cell.font = { bold: true };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
       cell.border = {
-        top: { style: 'thin' }, left: { style: 'thin' },
-        bottom: { style: 'thin' }, right: { style: 'thin' }
+        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
       };
     }
   }
@@ -112,10 +131,19 @@ export async function exportEnergyToExcel(data: EnergyExcelData) {
     });
 
     for (let c = 1; c <= 10; c++) {
-      row.getCell(c).border = {
-        top: { style: 'thin' }, left: { style: 'thin' },
-        bottom: { style: 'thin' }, right: { style: 'thin' }
+      const cell = row.getCell(c);
+      cell.font = { name: 'Segoe UI', size: 10 };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
       };
+      if (c > 1) {
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+      } else {
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      }
     }
     
     currentRow++;
@@ -124,8 +152,8 @@ export async function exportEnergyToExcel(data: EnergyExcelData) {
   // Total Row
   const totalRow = sheet.getRow(currentRow);
   totalRow.getCell(1).value = 'TOTAL YTD';
-  totalRow.getCell(1).font = { bold: true };
-  totalRow.getCell(1).alignment = { horizontal: 'center' };
+  totalRow.getCell(1).font = { name: 'Segoe UI', size: 11, bold: true };
+  totalRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
 
   totalRow.getCell(2).value = totalGas;
   totalRow.getCell(3).value = totalShipped;
@@ -139,17 +167,23 @@ export async function exportEnergyToExcel(data: EnergyExcelData) {
   totalRow.getCell(9).value = totalShipped;
   totalRow.getCell(10).value = totalShipped > 0 ? (totalElectricity / totalShipped) : 0;
 
-  totalRow.font = { bold: true };
-  totalRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } };
+  totalRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } }; // Light Gray Totals
 
   [2,3,5,6,8,9].forEach(col => totalRow.getCell(col).numFmt = '#,##0.00');
   [4,7,10].forEach(col => totalRow.getCell(col).numFmt = '0.00000');
 
   for (let c = 1; c <= 10; c++) {
-    totalRow.getCell(c).border = {
-      top: { style: 'medium' }, left: { style: 'thin' },
-      bottom: { style: 'medium' }, right: { style: 'thin' }
+    const cell = totalRow.getCell(c);
+    cell.font = { name: 'Segoe UI', size: 11, bold: true };
+    cell.border = {
+      top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      bottom: { style: 'double', color: { argb: 'FFCBD5E1' } },
+      right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
     };
+    if (c > 1) {
+      cell.alignment = { horizontal: 'right', vertical: 'middle' };
+    }
   }
 
   // Export
