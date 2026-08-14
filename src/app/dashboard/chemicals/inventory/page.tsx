@@ -6,7 +6,11 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { useGetChemicalsQuery, useCreateChemicalMutation, useDeleteChemicalMutation } from "@/lib/redux/slices/chemicalsApi";
+import { 
+  useGetChemicalsQuery, 
+  useCreateChemicalMutation, 
+  useDeleteChemicalMutation 
+} from "@/lib/redux/slices/chemicalsApi";
 
 export default function ChemicalInventoryPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -17,6 +21,7 @@ export default function ChemicalInventoryPage() {
   const [deleteChemical] = useDeleteChemicalMutation();
 
   // Form State
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [chemName, setChemName] = useState("");
   const [chemType, setChemType] = useState("");
   const [chemQty, setChemQty] = useState("");
@@ -27,7 +32,7 @@ export default function ChemicalInventoryPage() {
     if (!chemName || !chemType) return;
 
     const payload = {
-      date: new Date().toISOString().slice(0, 10),
+      date,
       chemicalName: chemName,
       chemicalType: chemType,
       quantity: chemQty || "0 Kg",
@@ -39,12 +44,12 @@ export default function ChemicalInventoryPage() {
 
     if (!res.error) {
       toast.success("New chemical added to inventory!");
+      setIsAddModalOpen(false);
+      setChemName(""); setChemType(""); setChemQty(""); setChemArea("");
     } else {
       const errorMsg = (res.error as any).data?.message || "Failed to add chemical";
       toast.error(errorMsg);
     }
-    setIsAddModalOpen(false);
-    setChemName(""); setChemType(""); setChemQty(""); setChemArea("");
   };
 
   const handleDelete = async () => {
@@ -58,6 +63,8 @@ export default function ChemicalInventoryPage() {
     }
     setChemicalToDelete(null);
   };
+
+  const selectedChemicalName = chemicals.find((c: any) => c._id === chemicalToDelete)?.chemicalName || "";
 
   return (
     <div className="space-y-6">
@@ -101,36 +108,42 @@ export default function ChemicalInventoryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              <tr>
-                <td className="p-4 font-medium">Reactive Black 5</td>
-                <td className="p-4">Dye</td>
-                <td className="p-4">1,250 kg</td>
-                <td className="p-4">Dyeing Floor A</td>
-                <td className="p-4"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Submitted</span></td>
-                <td className="p-4 text-right">
-                  <button 
-                    onClick={() => setChemicalToDelete('Reactive Black 5')}
-                    className="text-muted-foreground hover:text-red-500 transition-colors p-1"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td className="p-4 font-medium">Acetic Acid (99%)</td>
-                <td className="p-4">Auxiliary</td>
-                <td className="p-4">500 kg</td>
-                <td className="p-4">Washing Area</td>
-                <td className="p-4"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Submitted</span></td>
-                <td className="p-4 text-right">
-                  <button 
-                    onClick={() => setChemicalToDelete('Acetic Acid (99%)')}
-                    className="text-muted-foreground hover:text-red-500 transition-colors p-1"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-emerald-600 mb-2" />
+                    Loading inventory...
+                  </td>
+                </tr>
+              ) : chemicals.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                    No chemical inventory records found.
+                  </td>
+                </tr>
+              ) : (
+                chemicals.map((record: any) => (
+                  <tr key={record._id}>
+                    <td className="p-4 font-medium">{record.chemicalName}</td>
+                    <td className="p-4">{record.chemicalType}</td>
+                    <td className="p-4">{record.quantity}</td>
+                    <td className="p-4">{record.useArea}</td>
+                    <td className="p-4">
+                      <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs font-medium">
+                        {record.incheckStatus || "Submitted"}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <button 
+                        onClick={() => setChemicalToDelete(record._id)}
+                        className="text-muted-foreground hover:text-red-500 transition-colors p-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -146,27 +159,57 @@ export default function ChemicalInventoryPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-medium">Date</label>
-              <input type="date" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              <input 
+                type="date" 
+                required 
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" 
+              />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Name of chemical</label>
-              <input type="text" placeholder="e.g., Reactive Blue 21" required className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              <input 
+                type="text" 
+                placeholder="e.g., Reactive Blue 21" 
+                required 
+                value={chemName}
+                onChange={(e) => setChemName(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" 
+              />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Types of Chemical</label>
-              <input type="text" placeholder="e.g., Dye, Auxiliary" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              <input 
+                type="text" 
+                placeholder="e.g., Dye, Auxiliary" 
+                required
+                value={chemType}
+                onChange={(e) => setChemType(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" 
+              />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Chemical Inventory</label>
-              <input type="text" placeholder="e.g., 500 kg" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              <input 
+                type="text" 
+                placeholder="e.g., 500 kg" 
+                required
+                value={chemQty}
+                onChange={(e) => setChemQty(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" 
+              />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Chemical Use Area</label>
-              <input type="text" placeholder="e.g., Dyeing Floor" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Monthly Incheck Report</label>
-              <input type="text" placeholder="Report details or link" className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              <input 
+                type="text" 
+                placeholder="e.g., Dyeing Floor" 
+                required
+                value={chemArea}
+                onChange={(e) => setChemArea(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50" 
+              />
             </div>
           </div>
           <div className="pt-4 border-t border-border flex justify-end gap-3 mt-6">
@@ -185,7 +228,7 @@ export default function ChemicalInventoryPage() {
         onClose={() => setChemicalToDelete(null)}
         onConfirm={handleDelete}
         title="Delete Chemical"
-        message={`Are you sure you want to remove ${chemicalToDelete} from the inventory? This action cannot be undone.`}
+        message={`Are you sure you want to remove ${selectedChemicalName} from the inventory? This action cannot be undone.`}
         confirmText="Delete"
         isDestructive={true}
       />

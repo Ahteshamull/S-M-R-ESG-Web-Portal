@@ -526,7 +526,6 @@ export const exportWasteGenerationExcel = async (records: WasteGenerationRecord[
   saveAs(new Blob([buffer]), `Waste_Generation_Details_${new Date().getFullYear()}.xlsx`);
 };
 
-// 2. Export Waste Inventory Matrix
 export const exportInventoryExcel = async (records: any[]) => {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Waste Inventory');

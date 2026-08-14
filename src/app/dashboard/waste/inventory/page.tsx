@@ -61,7 +61,6 @@ export default function WasteInventoryPage() {
   const [formData, setFormData] = useState<Partial<InventoryRecord>>({
     wasteClassification: 'Non-Hazardous', unit: 'Kg', labeling: 'No', identification: 'Yes', ppe: 'No'
   });
-
   const handleChange = (field: keyof InventoryRecord, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -104,7 +103,6 @@ export default function WasteInventoryPage() {
       toast.error(errorMsg);
     }
   };
-
   const totalGeneral = records.filter(r => r.wasteClassification === 'Non-Hazardous').reduce((sum, r) => sum + r.quantity, 0);
   const totalHaz = records.filter(r => r.wasteClassification === 'Hazardous').reduce((sum, r) => sum + r.quantity, 0);
 
