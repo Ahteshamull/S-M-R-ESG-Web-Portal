@@ -21,7 +21,7 @@ export function Topbar() {
           <Leaf className="w-5 h-5 text-white" />
         </div>
         <Link href="/" className="font-bold text-lg tracking-tight">
-          S-M-R <span className="text-emerald-600">ESG</span>
+          SMART <span className="text-emerald-600">SUSTAINABILITY</span>
         </Link>
       </div>
 
