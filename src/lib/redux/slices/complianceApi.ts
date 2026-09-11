@@ -1,8 +1,39 @@
 import { apiSlice } from '../apiSlice';
 
+export interface IAssessmentItem {
+  _id?: string;
+  standard: string;
+  auditType: string;
+  auditDate?: string;
+  score?: number;
+  certValidUntil?: string;
+  certStatus?: 'Valid' | 'Expiring Soon' | 'Expired';
+  reportLink?: string;
+  approval: 'Approved' | 'Conditionally Approved' | 'Pending' | 'Rejected';
+  conditions?: string;
+  approvedBy?: string;
+  nextReview?: string;
+}
+
+export interface ISupplierRecord {
+  _id: string;
+  supplierId: string;
+  supplierName: string;
+  businessType: string;
+  address?: string;
+  productCategory?: string;
+  contactPerson?: string;
+  tradeLicenseNo?: string;
+  phone?: string;
+  email?: string;
+  assessments: IAssessmentItem[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export const complianceApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getComplianceOverview: builder.query<{ caps: any[]; legalDocs: any[]; committees: any[] }, void>({
+    getComplianceOverview: builder.query<{ caps: any[]; legalDocs: any[]; committees: any[]; suppliers?: ISupplierRecord[] }, void>({
       query: () => '/compliance/overview',
       transformResponse: (response: any) => response.data,
       providesTags: ['Compliance'],
@@ -60,6 +91,34 @@ export const complianceApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Compliance'],
     }),
+    getSuppliers: builder.query<ISupplierRecord[], void>({
+      query: () => '/compliance/suppliers',
+      transformResponse: (response: any) => response.data || [],
+      providesTags: ['Compliance'],
+    }),
+    createSupplier: builder.mutation<any, Partial<ISupplierRecord>>({
+      query: (body) => ({
+        url: '/compliance/suppliers',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Compliance'],
+    }),
+    updateSupplier: builder.mutation<any, { id: string; body: Partial<ISupplierRecord> }>({
+      query: ({ id, body }) => ({
+        url: `/compliance/suppliers/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Compliance'],
+    }),
+    deleteSupplier: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/compliance/suppliers/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Compliance'],
+    }),
   }),
 });
 
@@ -72,4 +131,9 @@ export const {
   useDeleteLegalDocMutation,
   useCreateCommitteeMutation,
   useDeleteCommitteeMutation,
+  useGetSuppliersQuery,
+  useCreateSupplierMutation,
+  useUpdateSupplierMutation,
+  useDeleteSupplierMutation,
 } = complianceApi;
+
