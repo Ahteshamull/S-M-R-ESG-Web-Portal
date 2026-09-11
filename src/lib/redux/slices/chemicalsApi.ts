@@ -18,6 +18,14 @@ export const chemicalsApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Chemicals', id: 'LIST' }],
     }),
+    updateChemical: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/chemicals/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: [{ type: 'Chemicals', id: 'LIST' }],
+    }),
     deleteChemical: builder.mutation<any, string>({
       query: (id) => ({
         url: `/chemicals/${id}`,
@@ -28,4 +36,10 @@ export const chemicalsApi = apiSlice.injectEndpoints({
   }),
 });
 
-export const { useGetChemicalsQuery, useCreateChemicalMutation, useDeleteChemicalMutation } = chemicalsApi;
+export const { 
+  useGetChemicalsQuery, 
+  useCreateChemicalMutation, 
+  useUpdateChemicalMutation,
+  useDeleteChemicalMutation 
+} = chemicalsApi;
+

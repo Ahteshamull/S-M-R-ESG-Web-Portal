@@ -26,24 +26,24 @@ export function Modal({ isOpen, onClose, title, children, maxWidthClass = "max-w
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto">
       <div 
         className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
       
-      <div className={`relative z-50 w-full ${maxWidthClass} bg-card rounded-2xl shadow-2xl border border-border overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
+      <div className={`relative z-50 w-full ${maxWidthClass} max-w-[95vw] sm:max-w-[92vw] bg-card rounded-2xl shadow-2xl border border-border overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto`}>
         <div className="flex items-center justify-between p-4 border-b border-border bg-muted/20">
-          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+          <h2 className="text-base sm:text-lg font-semibold tracking-tight truncate pr-2">{title}</h2>
           <button 
             onClick={onClose}
-            className="p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="p-1.5 sm:p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         
-        <div className="p-6 max-h-[80vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 max-h-[85vh] overflow-y-auto">
           {children}
         </div>
       </div>
