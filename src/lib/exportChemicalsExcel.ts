@@ -1,44 +1,8 @@
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { IChemicalItem } from './redux/slices/chemicalsApi';
 
-export interface ChemicalItem {
-  _id?: string;
-  slNo?: number;
-  chemicalName: string;
-  dateOfPurchase?: string;
-  expiryDate?: string;
-  batchNo?: string;
-  quantityPurchased?: string;
-  quantity?: string;
-  originalMsds?: string;
-  simplifiedMsds?: string;
-  labelAvailable?: string;
-  supplierName?: string;
-  manufacturerName?: string;
-  activeIngredients?: string;
-  casNo?: string;
-  mrslRslCompliance?: string;
-  zdhcLevel?: string;
-  certificateName?: string;
-  healthHazard?: string;
-  healthHazardType?: string;
-  physicalHazard?: string;
-  physicalHazardType?: string;
-  environmentalHazard?: string;
-  environmentalHazardType?: string;
-  functionOfChemical?: string;
-  useArea?: string;
-  ppeRecommended?: string;
-  storageCondition?: string;
-  monthlyConsumption?: string;
-  storageLocation?: string;
-  emergencyContact?: string;
-  checkedBy?: string;
-  checkedOn?: string;
-  remarks?: string;
-  customFields?: Array<{ fieldName: string; fieldValue: string; fieldType?: string }>;
-  [key: string]: any;
-}
+export type ChemicalItem = IChemicalItem;
 
 export interface ChemicalExportOptions {
   chemicals: ChemicalItem[];
@@ -240,8 +204,8 @@ export async function exportChemicalsToExcel(options: ChemicalExportOptions) {
     row.getCell(20).value = chem.physicalHazardType || '';
     row.getCell(21).value = chem.environmentalHazard || 'No';
     row.getCell(22).value = chem.environmentalHazardType || '';
-    row.getCell(23).value = chem.functionOfChemical || chem.chemicalType || '';
-    row.getCell(24).value = chem.areaOfUse || chem.useArea || '';
+    row.getCell(23).value = String(chem.functionOfChemical || chem.chemicalType || '');
+    row.getCell(24).value = String(chem.areaOfUse || chem.useArea || '');
     row.getCell(25).value = chem.ppeRecommended || '';
     row.getCell(26).value = chem.storageCondition || '';
     row.getCell(27).value = chem.monthlyConsumption || '';

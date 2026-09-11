@@ -1,14 +1,155 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   ArrowLeft, FlaskConical, ShieldCheck, Download, Calendar, 
-  RotateCcw, PackageSearch, CheckCircle2, AlertCircle, ExternalLink,
-  Layers, Award, FileText
+  RotateCcw, PackageSearch, AlertCircle, ExternalLink, Award
 } from "lucide-react";
-import { useGetChemicalsQuery } from "@/lib/redux/slices/chemicalsApi";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { useGetChemicalsQuery, IChemicalItem } from "@/lib/redux/slices/chemicalsApi";
+
+interface DonutSegment {
+  name: string;
+  value: number;
+  color: string;
+}
+
+function ConcentricDonutChart({
+  totalCount,
+  innerValue,
+  innerColor = "#6366f1",
+  outerSegments,
+  size = 230,
+}: {
+  totalCount: number;
+  innerValue: number;
+  innerColor?: string;
+  outerSegments: DonutSegment[];
+  size?: number;
+}) {
+  const [hovered, setHovered] = useState<string | null>(null);
+
+  const center = size / 2;
+  
+  // Inner ring: radius 54, stroke 14
+  const innerR = 54;
+  const innerStroke = 14;
+  const innerCircumference = 2 * Math.PI * innerR;
+  const innerFraction = totalCount > 0 ? Math.min(1, innerValue / totalCount) : 0;
+  const innerDash = innerFraction * innerCircumference;
+
+  // Outer ring: radius 73, stroke 16
+  const outerR = 73;
+  const outerStroke = 16;
+  const outerCircumference = 2 * Math.PI * outerR;
+
+  // Calculate segment offsets for outer ring
+  let currentOffset = 0;
+  const validSegments = outerSegments.filter((s) => s.value > 0);
+  const totalOuter = validSegments.reduce((sum, s) => sum + s.value, 0);
+
+  return (
+    <div className="flex flex-col items-center justify-center relative select-none w-full max-w-[240px] mx-auto">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90 overflow-visible">
+        {/* Inner Ring Background Track */}
+        <circle
+          cx={center}
+          cy={center}
+          r={innerR}
+          fill="none"
+          stroke="currentColor"
+          className="text-muted/30"
+          strokeWidth={innerStroke}
+        />
+        {/* Inner Ring Conformant Value */}
+        {totalCount > 0 && innerDash > 0 && (
+          <circle
+            cx={center}
+            cy={center}
+            r={innerR}
+            fill="none"
+            stroke={innerColor}
+            strokeWidth={innerStroke}
+            strokeDasharray={`${innerDash} ${innerCircumference}`}
+            strokeDashoffset={0}
+            className="transition-all duration-500 ease-out"
+          />
+        )}
+
+        {/* Outer Ring Background Track */}
+        <circle
+          cx={center}
+          cy={center}
+          r={outerR}
+          fill="none"
+          stroke="currentColor"
+          className="text-muted/20"
+          strokeWidth={outerStroke}
+        />
+
+        {/* Outer Ring Segments */}
+        {totalOuter > 0 ? (
+          validSegments.map((segment) => {
+            const fraction = segment.value / (totalCount || totalOuter);
+            const dash = fraction * outerCircumference;
+            const offset = -currentOffset;
+            currentOffset += dash;
+
+            return (
+              <circle
+                key={segment.name}
+                cx={center}
+                cy={center}
+                r={outerR}
+                fill="none"
+                stroke={segment.color}
+                strokeWidth={hovered?.startsWith(segment.name) ? outerStroke + 2 : outerStroke}
+                strokeDasharray={`${Math.max(1, dash - 1)} ${outerCircumference}`}
+                strokeDashoffset={offset}
+                onMouseEnter={() => setHovered(`${segment.name}: ${segment.value} products (${((segment.value / totalCount) * 100).toFixed(0)}%)`)}
+                onMouseLeave={() => setHovered(null)}
+                className="cursor-pointer transition-all duration-200"
+              />
+            );
+          })
+        ) : (
+          <circle
+            cx={center}
+            cy={center}
+            r={outerR}
+            fill="none"
+            stroke="#94a3b8"
+            strokeWidth={outerStroke}
+            strokeDasharray={`${outerCircumference} ${outerCircumference}`}
+            opacity={0.3}
+          />
+        )}
+      </svg>
+
+      {/* Center Text: Matches User Screenshot! */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+        <span className="text-3xl sm:text-4xl font-black text-foreground tracking-tight leading-none">
+          {totalCount}
+        </span>
+        <span className="text-xs font-bold text-foreground mt-1 tracking-tight">
+          Uploaded
+        </span>
+        <span className="text-[11px] text-muted-foreground font-semibold">
+          Products
+        </span>
+      </div>
+
+      {/* Interactive Tooltip on Hover */}
+      <div className="h-5 mt-1 flex items-center justify-center text-[11px] font-semibold text-foreground/80">
+        {hovered ? (
+          <span className="bg-muted px-2 py-0.5 rounded-md border border-border/60">
+            {hovered}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 const MONTH_OPTIONS = [
   { value: "ALL", label: "All Months" },
@@ -68,6 +209,11 @@ function parseChemicalDate(dateStr?: string, fallbackCreatedAt?: string): { mont
 
 export default function CompliancePage() {
   const { data: chemicals = [], isLoading } = useGetChemicalsQuery();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Filtering state
   const [selectedMonth, setSelectedMonth] = useState("ALL");
@@ -77,7 +223,7 @@ export default function CompliancePage() {
   // Gather available years dynamically
   const availableYears = useMemo(() => {
     const yearsSet = new Set<string>();
-    chemicals.forEach((chem: any) => {
+    chemicals.forEach((chem: IChemicalItem) => {
       [chem.date, chem.createdAt, chem.dateOfPurchase, chem.checkedOn].forEach((dStr) => {
         const d = parseChemicalDate(dStr);
         if (d?.year && d.year >= 1990 && d.year <= 2100) {
@@ -94,7 +240,7 @@ export default function CompliancePage() {
 
   // Filter chemicals by month and year
   const filteredChemicals = useMemo(() => {
-    return chemicals.filter((chem: any) => {
+    return chemicals.filter((chem: IChemicalItem) => {
       const q = searchQuery.toLowerCase();
       const matchesSearch = 
         !q ||
@@ -135,26 +281,26 @@ export default function CompliancePage() {
   const totalCount = filteredChemicals.length;
 
   // ZDHC Levels
-  const level1Count = filteredChemicals.filter((c: any) => c.zdhcLevel === "Level-1").length;
-  const level2Count = filteredChemicals.filter((c: any) => c.zdhcLevel === "Level-2").length;
-  const level3Count = filteredChemicals.filter((c: any) => c.zdhcLevel === "Level-3").length;
+  const level1Count = filteredChemicals.filter((c: IChemicalItem) => c.zdhcLevel === "Level-1").length;
+  const level2Count = filteredChemicals.filter((c: IChemicalItem) => c.zdhcLevel === "Level-2").length;
+  const level3Count = filteredChemicals.filter((c: IChemicalItem) => c.zdhcLevel === "Level-3").length;
   
   // Conformant is Level-1 + Level-2 + Level-3
   const conformantCount = level1Count + level2Count + level3Count;
 
   // Check expired (using expiryDate)
   const now = new Date();
-  const expiredCount = filteredChemicals.filter((c: any) => {
+  const expiredCount = filteredChemicals.filter((c: IChemicalItem) => {
     if (!c.expiryDate) return false;
     const exp = new Date(c.expiryDate);
     return !isNaN(exp.getTime()) && exp < now;
   }).length;
 
-  // Not Published in ZDHC Gateway (None or empty without cert)
-  const notPublishedCount = filteredChemicals.filter((c: any) => !c.zdhcLevel || c.zdhcLevel === "None").length;
+  // Not Published in ZDHC Gateway (None or empty)
+  const notPublishedCount = filteredChemicals.filter((c: IChemicalItem) => !c.zdhcLevel || c.zdhcLevel === "None").length;
 
   // Not Evaluated
-  const notEvaluatedCount = filteredChemicals.filter((c: any) => c.mrslRslCompliance === "N" || !c.mrslRslCompliance).length;
+  const notEvaluatedCount = filteredChemicals.filter((c: IChemicalItem) => c.mrslRslCompliance === "N" || !c.mrslRslCompliance).length;
 
   // Chemicals to Zero (CtZ)
   // Foundational = Level-1
@@ -169,27 +315,22 @@ export default function CompliancePage() {
   const gatewayPercent = totalCount > 0 ? (((totalCount - notPublishedCount) / totalCount) * 100).toFixed(2) : "0.00";
   const mrslPercent = calcPctPrecise(conformantCount);
 
-  // Data for ZDHC MRSL v3.1 Donut Chart
-  const zdhcChartData = useMemo(() => {
-    if (totalCount === 0) return [{ name: "No Data", value: 1, color: "#e2e8f0" }];
-    const data = [];
-    if (level3Count > 0) data.push({ name: "Level 3", value: level3Count, color: "#06b6d4" });
-    if (level2Count > 0) data.push({ name: "Level 2", value: level2Count, color: "#22c55e" });
-    if (level1Count > 0) data.push({ name: "Level 1", value: level1Count, color: "#a3e635" });
-    if (notPublishedCount > 0) data.push({ name: "Not Published", value: notPublishedCount, color: "#60a5fa" });
-    if (expiredCount > 0) data.push({ name: "Expired", value: expiredCount, color: "#475569" });
-    return data.length > 0 ? data : [{ name: "Conformant", value: totalCount, color: "#6366f1" }];
-  }, [totalCount, level3Count, level2Count, level1Count, notPublishedCount, expiredCount]);
+  // Outer segments for ZDHC Donut Chart
+  const zdhcSegments: DonutSegment[] = [
+    { name: "Level 3", value: level3Count, color: "#06b6d4" },
+    { name: "Level 2", value: level2Count, color: "#22c55e" },
+    { name: "Level 1", value: level1Count, color: "#a3e635" },
+    { name: "Not Published", value: notPublishedCount, color: "#60a5fa" },
+    { name: "Expired", value: expiredCount, color: "#475569" },
+  ];
 
-  // Data for Chemicals to Zero Donut Chart
-  const ctzChartData = useMemo(() => {
-    if (totalCount === 0) return [{ name: "No Data", value: 1, color: "#e2e8f0" }];
-    const data = [];
-    if (progressiveCount > 0) data.push({ name: "Provisionally Progressive", value: progressiveCount, color: "#86efac" });
-    if (foundationalCount > 0) data.push({ name: "Foundational", value: foundationalCount, color: "#bef264" });
-    if (notPublishedCount > 0) data.push({ name: "Not Published", value: notPublishedCount, color: "#60a5fa" });
-    return data.length > 0 ? data : [{ name: "Evaluated", value: totalCount, color: "#6366f1" }];
-  }, [totalCount, progressiveCount, foundationalCount, notPublishedCount]);
+  // Outer segments for Chemicals to Zero Donut Chart
+  const ctzSegments: DonutSegment[] = [
+    { name: "Provisionally Progressive", value: progressiveCount, color: "#86efac" },
+    { name: "Foundational", value: foundationalCount, color: "#bef264" },
+    { name: "Not Published", value: notPublishedCount, color: "#60a5fa" },
+    { name: "Expired", value: expiredCount, color: "#475569" },
+  ];
 
   const isAnyFilterActive = selectedMonth !== "ALL" || selectedYear !== "ALL" || searchQuery.trim() !== "";
 
@@ -198,6 +339,14 @@ export default function CompliancePage() {
     setSelectedYear("ALL");
     setSearchQuery("");
   };
+
+  if (!isMounted) {
+    return (
+      <div className="p-12 text-center text-muted-foreground">
+        Loading ZDHC MRSL Compliance Dashboard...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-12 w-full max-w-full min-w-0">
@@ -301,7 +450,7 @@ export default function CompliancePage() {
       {/* Top Section: Chemical Inventory Performance Progress Bars */}
       <div className="glass-card rounded-2xl p-5 sm:p-6 border border-border/60 shadow-sm space-y-4 w-full min-w-0">
         <div className="border-b border-border/50 pb-3">
-          <h2 className="text-lg font-bold text-foreground tracking-tight">Chemical Inventory Performance</h2>
+          <h2 className="text-lg font-bold text-foreground tracking-tight">Chemical Overview</h2>
           <p className="text-xs text-muted-foreground">High-level conformance benchmarks according to ZDHC Gateway standards</p>
         </div>
 
@@ -373,55 +522,15 @@ export default function CompliancePage() {
 
             {/* Donut Chart & Breakdown Table Row */}
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center pt-6">
-              {/* Donut Chart Left */}
-              <div className="sm:col-span-5 flex flex-col items-center justify-center relative min-h-[220px]">
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Tooltip 
-                      formatter={(val: any, name: any) => [`${val} product(s)`, name]}
-                      contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '0.75rem', borderColor: 'var(--border)' }}
-                    />
-                    {/* Inner Conformant Ring */}
-                    <Pie
-                      data={[{ name: "Conformant", value: conformantCount || (totalCount === 0 ? 1 : 0) }]}
-                      dataKey="value"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={72}
-                      startAngle={90}
-                      endAngle={-270}
-                      strokeWidth={2}
-                      stroke="var(--card)"
-                    >
-                      <Cell fill={totalCount === 0 ? "#cbd5e1" : "#6366f1"} />
-                    </Pie>
-                    {/* Outer Level Ring */}
-                    <Pie
-                      data={zdhcChartData}
-                      dataKey="value"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={76}
-                      outerRadius={92}
-                      startAngle={90}
-                      endAngle={-270}
-                      strokeWidth={2}
-                      stroke="var(--card)"
-                    >
-                      {zdhcChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-
-                {/* Center Badge */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-3xl font-black text-foreground tracking-tight">{totalCount}</span>
-                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Uploaded</span>
-                  <span className="text-[10px] text-muted-foreground/80 font-medium">Products</span>
-                </div>
+              {/* Native SVG Donut Chart Left */}
+              <div className="sm:col-span-5 flex flex-col items-center justify-center">
+                <ConcentricDonutChart
+                  totalCount={totalCount}
+                  innerValue={conformantCount}
+                  innerColor="#6366f1"
+                  outerSegments={zdhcSegments}
+                  size={230}
+                />
               </div>
 
               {/* Exact Styled Table Matching Official Report (Right) */}
@@ -539,55 +648,15 @@ export default function CompliancePage() {
 
             {/* Donut Chart & Breakdown Table Row */}
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center pt-6">
-              {/* Donut Chart Left */}
-              <div className="sm:col-span-5 flex flex-col items-center justify-center relative min-h-[220px]">
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Tooltip 
-                      formatter={(val: any, name: any) => [`${val} product(s)`, name]}
-                      contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '0.75rem', borderColor: 'var(--border)' }}
-                    />
-                    {/* Inner Conformant Ring */}
-                    <Pie
-                      data={[{ name: "Conformant", value: conformantCount || (totalCount === 0 ? 1 : 0) }]}
-                      dataKey="value"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={72}
-                      startAngle={90}
-                      endAngle={-270}
-                      strokeWidth={2}
-                      stroke="var(--card)"
-                    >
-                      <Cell fill={totalCount === 0 ? "#cbd5e1" : "#6366f1"} />
-                    </Pie>
-                    {/* Outer CtZ Ring */}
-                    <Pie
-                      data={ctzChartData}
-                      dataKey="value"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={76}
-                      outerRadius={92}
-                      startAngle={90}
-                      endAngle={-270}
-                      strokeWidth={2}
-                      stroke="var(--card)"
-                    >
-                      {ctzChartData.map((entry, index) => (
-                        <Cell key={`ctz-cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-
-                {/* Center Badge */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-3xl font-black text-foreground tracking-tight">{totalCount}</span>
-                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Uploaded</span>
-                  <span className="text-[10px] text-muted-foreground/80 font-medium">Products</span>
-                </div>
+              {/* Native SVG Donut Chart Left */}
+              <div className="sm:col-span-5 flex flex-col items-center justify-center">
+                <ConcentricDonutChart
+                  totalCount={totalCount}
+                  innerValue={conformantCount}
+                  innerColor="#6366f1"
+                  outerSegments={ctzSegments}
+                  size={230}
+                />
               </div>
 
               {/* Exact Styled Table Matching Official CtZ Report (Right) */}
@@ -721,7 +790,7 @@ export default function CompliancePage() {
                   </td>
                 </tr>
               ) : (
-                filteredChemicals.map((record: any, index: number) => {
+                filteredChemicals.map((record: IChemicalItem, index: number) => {
                   const isLevel3 = record.zdhcLevel === "Level-3";
                   const isLevel2 = record.zdhcLevel === "Level-2";
                   const isLevel1 = record.zdhcLevel === "Level-1";
