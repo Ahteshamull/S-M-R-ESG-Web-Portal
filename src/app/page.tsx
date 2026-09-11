@@ -27,7 +27,7 @@ export default function Home() {
             <div className="bg-emerald-600 p-2 rounded-lg shadow-sm shadow-emerald-500/20">
               <Leaf className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight">S-M-R ESG</span>
+            <span className="text-xl font-bold tracking-tight">SMART SUSTAINABILITY</span>
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
@@ -77,7 +77,7 @@ export default function Home() {
         <section className="py-20 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold mb-4">How S-M-R ESG Works</h2>
+              <h2 className="text-3xl font-bold mb-4">How SMART SUSTAINABILITY Works</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto text-lg">Our streamlined data flow architecture ensures accuracy from data entry to actionable insights.</p>
             </div>
 
@@ -237,9 +237,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center">
           <div className="flex items-center gap-2 mb-4">
             <Leaf className="w-5 h-5 text-emerald-500" />
-            <span className="text-lg font-bold text-slate-200 dark:text-foreground">S-M-R ESG</span>
+            <span className="text-lg font-bold text-slate-200 dark:text-foreground">SMART SUSTAINABILITY</span>
           </div>
-          <p className="text-sm">© {new Date().getFullYear()} S-M-R ESG Portal. All rights reserved.</p>
+          <p className="text-sm">© {new Date().getFullYear()} SMART SUSTAINABILITY Portal. All rights reserved.</p>
           <p className="text-xs mt-2 opacity-60">Private & Confidential</p>
         </div>
       </footer>

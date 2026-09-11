@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "S-M-R ESG Portal | Excellence Starts Here",
+  title: "SMART SUSTAINABILITY Portal | Excellence Starts Here",
   description: "An Integrated ESG Platform for Environmental, Social & Governance Performance.",
 };
 
