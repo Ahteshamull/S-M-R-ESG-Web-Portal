@@ -1992,7 +1992,7 @@ export default function EnterpriseWaterPortal() {
             <div className="flex items-center justify-between border-b border-teal-500/20 pb-2.5">
               <h4 className="font-bold text-sm text-teal-800 dark:text-teal-300 flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-teal-600 text-white flex items-center justify-center text-[10px] font-black">4</span>
-                Department-Wise Water Consumption (m³)
+                Fasility-Wise Water Consumption (m³)
               </h4>
               <span className="text-[11px] font-semibold text-muted-foreground">Detailed In-Plant Sub-metering</span>
             </div>
@@ -2000,7 +2000,7 @@ export default function EnterpriseWaterPortal() {
             {/* Sub-processes: Processing & Utility */}
             <div className="space-y-3">
               <span className="text-xs font-black text-foreground uppercase tracking-wide block">
-                4.1 Primary Processing &amp; Utility Plants
+                4.1 Washing Plants
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 <div>
