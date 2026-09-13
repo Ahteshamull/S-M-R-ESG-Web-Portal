@@ -28,7 +28,7 @@ export const waterApi = apiSlice.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: [{ type: 'Water', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Water', id: 'LIST' }, { type: 'Water', id: 'TELEMETRY' }, { type: 'Water' }],
     }),
     updateWaterLog: builder.mutation<any, { id: string; body: any }>({
       query: ({ id, body }) => ({
@@ -36,14 +36,14 @@ export const waterApi = apiSlice.injectEndpoints({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: [{ type: 'Water', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Water', id: 'LIST' }, { type: 'Water', id: 'TELEMETRY' }, { type: 'Water' }],
     }),
     deleteWaterLog: builder.mutation<any, string>({
       query: (id) => ({
         url: `/water/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: [{ type: 'Water', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Water', id: 'LIST' }, { type: 'Water', id: 'TELEMETRY' }, { type: 'Water' }],
     }),
     getWaterDepartmentTelemetry: builder.query<any, { area: string; year?: number; month?: string }>({
       query: ({ area, year, month }) => {
