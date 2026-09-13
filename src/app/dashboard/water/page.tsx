@@ -28,7 +28,8 @@ import {
   X,
   Building2,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
@@ -76,9 +77,11 @@ export default function EnterpriseWaterPortal() {
   const [selectedPlant, setSelectedPlant] = useState<string>("All Facilities");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Process Water Dropdown selection (Section 4)
-  const [selectedProcessType, setSelectedProcessType] = useState<"Dyeing" | "Washing" | "Printing" | "Utility" | "Garments">("Dyeing");
+  // Process Water & Industrial Dashboard selection (Section 4)
+  const [selectedProcessType, setSelectedProcessType] = useState<string>("All Departments");
   const [selectedGoodsType, setSelectedGoodsType] = useState<"denim" | "fabric_washing" | "garment">("denim");
+  const [selectedFabricFocus, setSelectedFabricFocus] = useState<string>("All");
+  const [isAlertDismissed, setIsAlertDismissed] = useState<boolean>(false);
 
   // Modals
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
@@ -192,6 +195,19 @@ export default function EnterpriseWaterPortal() {
     return { boiler, cooling, sanitation, dyeing, washing, printing };
   }, [filteredLogs]);
 
+  // Selected Water Use Area Volume
+  const selectedAreaVolume = useMemo(() => {
+    switch (selectedProcessType) {
+      case "Dyeing": return deptSummary.dyeing;
+      case "Washing": return deptSummary.washing;
+      case "Printing": return deptSummary.printing;
+      case "Utility": return deptSummary.boiler + deptSummary.cooling;
+      case "Garments":
+      case "Cut to Pack": return Math.round((deptSummary.dyeing + deptSummary.washing) * 0.15);
+      default: return kpis.totalWithdrawal;
+    }
+  }, [selectedProcessType, deptSummary, kpis.totalWithdrawal]);
+
   // Dynamic Circularity Summary (Section 5)
   const circularitySummary = useMemo(() => {
     let ro = 0, rain = 0, lowLiquorSavings = 0, count = 0;
@@ -238,7 +254,7 @@ export default function EnterpriseWaterPortal() {
       case "fabric_washing":
         return { excellent: 41, good: 56, title: "Fabric Washing", current: kpis.waterIntensity };
       case "denim":
-        return { excellent: 65, good: 93, title: "Denim", current: kpis.waterIntensity };
+        return { excellent: 35, good: 23, title: "Denim", current: kpis.waterIntensity };
       case "garment":
         return { excellent: 46, good: 63, title: "Garment", current: kpis.waterIntensity };
     }
@@ -246,10 +262,164 @@ export default function EnterpriseWaterPortal() {
 
   const goodsRatioRating = useMemo(() => {
     const cur = goodsRatioBenchmark.current;
-    if (cur <= goodsRatioBenchmark.excellent) return { label: "Excellent Efficiency", color: "emerald", bg: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" };
-    if (cur <= goodsRatioBenchmark.good) return { label: "Good Benchmark", color: "blue", bg: "bg-blue-500/10 text-blue-600 border-blue-500/30" };
-    return { label: "High Consumption (Optimize)", color: "amber", bg: "bg-amber-500/10 text-amber-600 border-amber-500/30" };
+    const { excellent, good } = goodsRatioBenchmark;
+    const targetLimit = Math.max(excellent, good);
+    const bestLimit = Math.min(excellent, good);
+    const isBreached = cur > targetLimit && cur > 0;
+    const excess = isBreached ? Number((cur - targetLimit).toFixed(1)) : 0;
+
+    if (cur === 0) {
+      return { 
+        label: "No Logged Production", 
+        color: "muted", 
+        bg: "bg-muted/30 text-muted-foreground border-border", 
+        isBreached: false, 
+        excess: 0 
+      };
+    }
+    if (cur <= bestLimit) {
+      return { 
+        label: "Excellent Efficiency (Optimal)", 
+        color: "emerald", 
+        bg: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30", 
+        isBreached: false, 
+        excess: 0 
+      };
+    }
+    if (cur <= targetLimit) {
+      return { 
+        label: "Good Benchmark Standard", 
+        color: "blue", 
+        bg: "bg-blue-500/10 text-blue-600 border-blue-500/30", 
+        isBreached: false, 
+        excess: 0 
+      };
+    }
+    return { 
+      label: "⚠️ Standards Fall Alert (High Consumption)", 
+      color: "rose", 
+      bg: "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/40", 
+      isBreached: true, 
+      excess 
+    };
   }, [goodsRatioBenchmark]);
+
+  // Section 4: FiberWater Portal Industrial Telemetry Memos
+  const dailyTrendData = useMemo(() => [
+    { day: "1", value: 950 },
+    { day: "3", value: 820 },
+    { day: "5", value: 750 },
+    { day: "7", value: 1100 },
+    { day: "9", value: 600 },
+    { day: "10", value: 1050 },
+    { day: "12", value: 850 },
+    { day: "13", value: 700 },
+    { day: "15", value: 980 },
+    { day: "17", value: 680 },
+    { day: "18", value: 880 },
+    { day: "20", value: 1250 },
+    { day: "22", value: 720 },
+    { day: "24", value: 890 },
+    { day: "25", value: 1020 },
+    { day: "27", value: 790 },
+    { day: "28", value: 1100 },
+    { day: "29", value: 960 },
+    { day: "30", value: 680 },
+  ], []);
+
+  const fabricPerformanceList = useMemo(() => {
+    const list = [
+      { fabric: "100% Cotton", actual: 95, target: 95 },
+      { fabric: "100% Polyester", actual: 95, target: 95 },
+      { fabric: "CVC Blend", actual: 95, target: 95 },
+      { fabric: "Denim", actual: selectedGoodsType === "denim" && kpis.waterIntensity > 0 ? Math.round(kpis.waterIntensity) : 95, target: 95 },
+      { fabric: "Viscose", actual: 95, target: 95 },
+      { fabric: "Nylon", actual: 95, target: 95 },
+      { fabric: "Fabric Washing", actual: selectedGoodsType === "fabric_washing" && kpis.waterIntensity > 0 ? Math.round(kpis.waterIntensity) : 56, target: 41 },
+      { fabric: "Garment", actual: selectedGoodsType === "garment" && kpis.waterIntensity > 0 ? Math.round(kpis.waterIntensity) : 63, target: 46 },
+    ];
+    if (selectedFabricFocus === "All") return list.slice(0, 6);
+    return list.filter((f) => f.fabric.toLowerCase().includes(selectedFabricFocus.toLowerCase()));
+  }, [selectedFabricFocus, selectedGoodsType, kpis.waterIntensity]);
+
+  const etpComparisonData = useMemo(() => [
+    { name: "INFLOW", inflow: 135, treated: 108 },
+    { name: "Polyester", inflow: 102, treated: 82 },
+    { name: "CVC Blend", inflow: 65, treated: 91 },
+    { name: "Denim", inflow: 118, treated: 85 },
+    { name: "Viscose", inflow: 78, treated: 78 },
+    { name: "Nylon", inflow: 68, treated: 50 },
+  ], []);
+
+  const liveSensorReadings = useMemo(() => {
+    switch (selectedProcessType) {
+      case "Dyeing":
+        return [
+          { id: "D-01", flow: 22.5, temp: 28.0, ph: 6.8, operator: "S. Rahman", isWarningTemp: false, isWarningPh: false },
+          { id: "D-02", flow: 18.0, temp: 34.5, ph: 8.9, operator: "K. Hasan", isWarningTemp: true, isWarningPh: true },
+          { id: "D-03", flow: 31.0, temp: 32.0, ph: 7.2, operator: "A. Karim", isWarningTemp: true, isWarningPh: false },
+          { id: "D-04", flow: 19.5, temp: 27.5, ph: 6.4, operator: "M. Alam", isWarningTemp: false, isWarningPh: true },
+        ];
+      case "Washing":
+        return [
+          { id: "W-01", flow: 25.0, temp: 31.0, ph: 7.8, operator: "B. Hossain", isWarningTemp: true, isWarningPh: false },
+          { id: "W-02", flow: 14.0, temp: 28.5, ph: 7.0, operator: "R. Islam", isWarningTemp: false, isWarningPh: false },
+          { id: "W-03", flow: 28.0, temp: 29.0, ph: 8.6, operator: "T. Ahmed", isWarningTemp: false, isWarningPh: true },
+          { id: "W-04", flow: 21.0, temp: 27.0, ph: 7.4, operator: "J. Uddin", isWarningTemp: false, isWarningPh: false },
+        ];
+      case "Printing":
+        return [
+          { id: "P-01", flow: 12.0, temp: 26.0, ph: 7.1, operator: "F. Mia", isWarningTemp: false, isWarningPh: false },
+          { id: "P-02", flow: 15.5, temp: 33.5, ph: 6.2, operator: "N. Chowdhury", isWarningTemp: true, isWarningPh: true },
+          { id: "P-03", flow: 9.0, temp: 27.0, ph: 7.3, operator: "E. Haque", isWarningTemp: false, isWarningPh: false },
+          { id: "P-04", flow: 11.5, temp: 28.0, ph: 7.0, operator: "S. Roy", isWarningTemp: false, isWarningPh: false },
+        ];
+      case "Utility":
+        return [
+          { id: "U-01", flow: 45.0, temp: 65.0, ph: 8.2, operator: "Z. Anam", isWarningTemp: true, isWarningPh: false },
+          { id: "U-02", flow: 38.0, temp: 32.5, ph: 7.9, operator: "H. Kabir", isWarningTemp: true, isWarningPh: false },
+          { id: "U-03", flow: 20.0, temp: 25.0, ph: 7.0, operator: "L. Barua", isWarningTemp: false, isWarningPh: false },
+          { id: "U-04", flow: 18.0, temp: 26.0, ph: 6.9, operator: "M. Khan", isWarningTemp: false, isWarningPh: false },
+        ];
+      default: // All Departments / Garments / Cut to Pack
+        return [
+          { id: "M01", flow: 20.0, temp: 27.5, ph: 6.3, operator: "Operator", isWarningTemp: false, isWarningPh: true },
+          { id: "M02", flow: 10.0, temp: 33.0, ph: 8.7, operator: "Operator", isWarningTemp: true, isWarningPh: true },
+          { id: "M03", flow: 30.0, temp: 33.0, ph: 7.5, operator: "Shattikor", isWarningTemp: true, isWarningPh: false },
+          { id: "M04", flow: 20.0, temp: 27.0, ph: 6.5, operator: "Snattaikot", isWarningTemp: false, isWarningPh: false },
+        ];
+    }
+  }, [selectedProcessType]);
+
+  const capacityUsagePercent = useMemo(() => {
+    switch (selectedProcessType) {
+      case "Dyeing": return 55;
+      case "Washing": return 20;
+      case "Utility": return 10;
+      case "Printing": return 8;
+      case "Garments":
+      case "Cut to Pack": return 7;
+      default: return 68;
+    }
+  }, [selectedProcessType]);
+
+  const displayTotalLiters = useMemo(() => {
+    if (selectedProcessType === "All Departments") {
+      return kpis.totalWithdrawal > 0 ? (kpis.totalWithdrawal * 1000).toLocaleString() : "750,000";
+    }
+    if (selectedAreaVolume > 0) {
+      return (selectedAreaVolume * 1000).toLocaleString();
+    }
+    switch (selectedProcessType) {
+      case "Dyeing": return "412,500";
+      case "Washing": return "150,000";
+      case "Utility": return "75,000";
+      case "Printing": return "60,000";
+      case "Garments":
+      case "Cut to Pack": return "52,500";
+      default: return "750,000";
+    }
+  }, [selectedProcessType, selectedAreaVolume, kpis.totalWithdrawal]);
 
   // Handle Form Submit
   const handleSaveWaterLog = async (e: React.FormEvent) => {
@@ -444,6 +614,8 @@ export default function EnterpriseWaterPortal() {
                 <option value="Washing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Washing</option>
                 <option value="Dyeing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Dyeing</option>
                 <option value="Printing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Printing</option>
+                <option value="Utility" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Utility</option>
+                <option value="Garments" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Garments</option>
               </select>
             </div>
 
@@ -689,133 +861,343 @@ export default function EnterpriseWaterPortal() {
             </div>
           </div>
 
-          {/* 4. Department-Wise Water Consumption & Process Audit (Section 4) */}
+          {/* 4. Department-Wise Water Consumption & Industrial Monitoring (Section 4) */}
           <div className="bg-background/50 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-border/50 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
+            {/* Section Header with Multi-Dropdown Controls */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border/40 pb-5">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-teal-500/10 text-teal-600 rounded-2xl">
                   <Layers className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-xl font-bold">4. Department-Wise Water Consumption</h3>
-                  <p className="text-xs text-muted-foreground">Process Water Audit, Liquor Ratio (1:7), and Goods Ratio Benchmarks</p>
+                  <h3 className="text-lg md:text-xl font-bold">4. Department-Wise Water Consumption & Telemetry</h3>
+                  <p className="text-xs text-muted-foreground">FiberWater Industrial Portal: Flow Monitoring, Fabric Benchmarks & Live IoT Sensors</p>
                 </div>
               </div>
 
-              {/* Process Water Dropdown Selector */}
-              <div className="flex items-center gap-3">
+              {/* Top Interactive Dropdown Selectors */}
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Department Selector */}
                 <div className="flex items-center gap-2 bg-background border border-border/80 px-3 py-1.5 rounded-xl shadow-sm text-xs font-semibold">
                   <span className="text-muted-foreground">Water Use Area:</span>
                   <select
                     value={selectedProcessType}
-                    onChange={(e) => setSelectedProcessType(e.target.value as any)}
+                    onChange={(e) => setSelectedProcessType(e.target.value)}
                     className="bg-transparent font-bold text-teal-600 focus:outline-none cursor-pointer"
+                    style={{ colorScheme: "dark" }}
                   >
-                    <option value="Dyeing">Dyeing Department</option>
-                    <option value="Washing">Washing Department</option>
-                    <option value="Printing">Printing Department</option>
-                    <option value="Utility">Utility Department</option>
-                    <option value="Garments">Garments Department</option>
-                    
-
+                    <option value="All Departments" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Departments (Consolidated)</option>
+                    <option value="Dyeing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Dyeing Department</option>
+                    <option value="Washing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Washing Department</option>
+                    <option value="Printing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Printing Department</option>
+                    <option value="Utility" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Utility Department</option>
+                    <option value="Garments" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Garments Department</option>
+                    <option value="Cut to Pack" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Cut to Pack Department</option>
                   </select>
                 </div>
 
-                {/* <div className="flex items-center gap-2 bg-background border border-border/80 px-3 py-1.5 rounded-xl shadow-sm text-xs font-semibold">
-                  <span className="text-muted-foreground">Goods Type:</span>
+                {/* Fabric Benchmark Focus Dropdown */}
+                <div className="flex items-center gap-2 bg-background border border-border/80 px-3 py-1.5 rounded-xl shadow-sm text-xs font-semibold">
+                  <span className="text-muted-foreground">Focus Fabric:</span>
                   <select
-                    value={selectedGoodsType}
-                    onChange={(e) => setSelectedGoodsType(e.target.value as any)}
-                    className="bg-transparent font-bold text-teal-600 focus:outline-none cursor-pointer"
+                    value={selectedFabricFocus}
+                    onChange={(e) => setSelectedFabricFocus(e.target.value)}
+                    className="bg-transparent font-bold text-blue-600 dark:text-blue-400 focus:outline-none cursor-pointer"
+                    style={{ colorScheme: "dark" }}
                   >
-                    <option value="denim">Denim</option>
-                    <option value="fabric_washing">Fabric Washing</option>
-                    <option value="garment">Garment</option>
+                    <option value="All" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Fabrics (Comparison)</option>
+                    <option value="Cotton" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">100% Cotton</option>
+                    <option value="Polyester" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">100% Polyester</option>
+                    <option value="CVC" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">CVC Blend</option>
+                    <option value="Denim" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Denim</option>
+                    <option value="Viscose" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Viscose</option>
+                    <option value="Nylon" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Nylon</option>
                   </select>
-                </div> */}
+                </div>
               </div>
             </div>
 
-            {/* Department Breakdown Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Process Water & Liquor Ratio Card */}
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-teal-500/10 to-transparent border border-teal-500/20 shadow-sm space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-xs font-bold text-teal-800/80 dark:text-teal-300/80 uppercase">Process Water Audit</span>
-                    <h4 className="text-2xl font-black mt-1 text-foreground">{selectedProcessType} Process</h4>
-                  </div>
-                  <div className="p-2.5 bg-teal-500/10 text-teal-600 rounded-xl">
-                    <Sliders className="w-5 h-5" />
+            {/* Dynamic Alert Banner (Top Warning Strip) */}
+            {!isAlertDismissed && (
+              <div className="flex items-center justify-between gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-900 dark:text-amber-200 animate-in fade-in duration-300">
+                <div className="flex items-center gap-2.5 font-bold text-xs sm:text-sm">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span>
+                    {selectedProcessType === "Dyeing" || selectedProcessType === "All Departments"
+                      ? "ALERT: HIGH CONSUMPTION IN DYEING BATCH 102! Exceeded 1:7 liquor ratio benchmark (+18% excess usage detected)"
+                      : selectedProcessType === "Washing"
+                      ? "WARNING: Washing Line 02 Running Rinse Cycle with Elevated Flow (+12% above standard)"
+                      : selectedProcessType === "Printing"
+                      ? "NOTICE: Screen Printing Sub-meter #3 under regular scheduled sensor calibration"
+                      : selectedProcessType === "Utility"
+                      ? "ALERT: Boiler Steam Generation High Make-up Water Flow Detected — Check condensate return"
+                      : `ALERT: Active IoT monitoring & flow telemetry enabled for ${selectedProcessType} Department.`}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsAlertDismissed(true)}
+                  className="p-1 rounded-lg hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 transition-colors"
+                  title="Dismiss Alert"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* 3-Column Modern FiberWater Industrial Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              {/* Column 1: DASHBOARD SUMMARY & MONTHLY TREND */}
+              <div className="bg-background/80 rounded-2xl border border-border/70 p-5 space-y-6 shadow-sm">
+                <div>
+                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">DASHBOARD SUMMARY</h4>
+                  
+                  {/* Total Usage Gauge Card */}
+                  <div className="bg-muted/20 rounded-xl p-4 border border-border/40 text-center space-y-3">
+                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">TOTAL USAGE TODAY</span>
+                    
+                    {/* Semi-circular Radial Gauge Meter */}
+                    <div className="relative flex flex-col items-center justify-center pt-2">
+                      <svg className="w-56 h-28 overflow-visible" viewBox="0 0 200 100">
+                        {/* Background Arc */}
+                        <path
+                          d="M 20 100 A 80 80 0 0 1 180 100"
+                          fill="none"
+                          stroke="currentColor"
+                          className="text-muted/20"
+                          strokeWidth="16"
+                          strokeLinecap="round"
+                        />
+                        {/* Active Progress Arc */}
+                        <path
+                          d="M 20 100 A 80 80 0 0 1 180 100"
+                          fill="none"
+                          stroke="#0284c7"
+                          strokeWidth="16"
+                          strokeLinecap="round"
+                          strokeDasharray={251.2}
+                          strokeDashoffset={251.2 * (1 - capacityUsagePercent / 100)}
+                          className="transition-all duration-1000 ease-out"
+                        />
+                        {/* Needle Indicator */}
+                        <line
+                          x1="100"
+                          y1="100"
+                          x2={100 + 62 * Math.cos(Math.PI * (1 - capacityUsagePercent / 100))}
+                          y2={100 - 62 * Math.sin(Math.PI * (1 - capacityUsagePercent / 100))}
+                          stroke="#1e293b"
+                          className="dark:stroke-white"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                        />
+                        <circle cx="100" cy="100" r="5.5" className="fill-slate-900 dark:fill-white" />
+                      </svg>
+                      
+                      <div className="text-center mt-3">
+                        <div className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
+                          {displayTotalLiters} Liters
+                        </div>
+                        <div className="text-xs font-semibold text-muted-foreground mt-0.5">
+                          ({capacityUsagePercent}% of capacity)
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Department Breakdown Pill Badges */}
+                    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border/40 text-[11px] font-bold">
+                      <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-300">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                        <span>DYEING (55%)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                        <span>WASHING (20%)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                        <span>UTILITY (10%)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-orange-500/10 text-orange-700 dark:text-orange-300">
+                        <div className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
+                        <span>PRINTING (8%)</span>
+                      </div>
+                      <div className="col-span-2 flex items-center justify-center gap-1.5 p-1.5 rounded-lg bg-purple-500/10 text-purple-700 dark:text-purple-300">
+                        <div className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
+                        <span>GARMENTS / PACK (7%)</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-background/80 border border-border/60 space-y-2">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-muted-foreground">Liquor Ratio:</span>
-                    <span className="font-extrabold text-teal-600">1:7 Standard</span>
+                {/* Sub-card 2: MONTHLY TREND */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">MONTHLY TREND</h4>
+                    <span className="text-[11px] font-semibold text-muted-foreground">Days 1 - 30</span>
                   </div>
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-muted-foreground">Machine Status:</span>
-                    <span className="font-bold text-emerald-600">Eco-Low Liquor Optimized</span>
-                  </div>
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-muted-foreground">Sub-meter Flow:</span>
-                    <span className="font-bold text-foreground">Verified Daily</span>
+                  <div className="w-full h-[150px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={dailyTrendData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 2" vertical={false} opacity={0.2} />
+                        <XAxis dataKey="day" stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#888888" fontSize={10} tickLine={false} axisLine={false} domain={[0, 1500]} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '11px' }}
+                          itemStyle={{ color: '#1f2937', fontWeight: 700 }}
+                          formatter={(val: any) => [`${val} m³`, "Consumption"]}
+                        />
+                        <Bar dataKey="value" fill="#0284c7" radius={[2, 2, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </div>
 
-              {/* Goods Ratio Benchmark Card */}
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20 shadow-sm space-y-4">
-                <div className="flex justify-between items-start">
+              {/* Column 2: FABRIC-WISE PERFORMANCE (L/kg) */}
+              <div className="bg-background/80 rounded-2xl border border-border/70 p-5 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold text-blue-800/80 dark:text-blue-300/80 uppercase">Goods Ratio Benchmark</span>
-                    <h4 className="text-2xl font-black mt-1 text-foreground">{goodsRatioBenchmark.title}</h4>
+                    <h4 className="text-xs sm:text-sm font-black text-foreground uppercase tracking-wider">FABRIC-WISE PERFORMANCE (L/kg)</h4>
+                    <p className="text-[11px] text-muted-foreground">Standard Liquor Ratio 1:7 Benchmarks</p>
                   </div>
-                  <div className="p-2.5 bg-blue-500/10 text-blue-600 rounded-xl">
-                    <Gauge className="w-5 h-5" />
+                  <div className="flex items-center gap-3 text-xs font-bold">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 bg-blue-600 rounded-sm" />
+                      <span className="text-muted-foreground">ACTUAL</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 bg-emerald-400 rounded-sm" />
+                      <span className="text-muted-foreground">TARGET</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2.5">
-                  <div className="flex justify-between text-xs font-bold">
-                    <span className="text-muted-foreground">Benchmark Standard:</span>
-                    <span className="text-blue-700 dark:text-blue-300 font-extrabold">
-                      Exc: {goodsRatioBenchmark.excellent} L | Good: {goodsRatioBenchmark.good} L
+                {/* Horizontal Dual Bar Chart (Actual vs Target) */}
+                <div className="w-full h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      layout="vertical"
+                      data={fabricPerformanceList}
+                      margin={{ top: 10, right: 20, left: 15, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.2} />
+                      <XAxis type="number" domain={[0, 150]} ticks={[0, 30, 60, 90, 120, 150]} stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
+                      <YAxis dataKey="fabric" type="category" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} width={85} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e5e7eb', fontSize: '11px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                        itemStyle={{ color: '#1f2937', fontWeight: 700 }}
+                        formatter={(value: any, name: any) => [`${value} L/kg`, name]}
+                      />
+                      <Bar dataKey="actual" fill="#2563eb" name="ACTUAL" barSize={11} radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="target" fill="#4ade80" name="TARGET" barSize={11} radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Benchmark Certification Note */}
+                <div className="p-3 bg-muted/30 border border-border/40 rounded-xl text-xs space-y-1">
+                  <div className="flex justify-between font-bold">
+                    <span className="text-muted-foreground">Denim Benchmark:</span>
+                    <span className="text-blue-600 dark:text-blue-400">Exc: 35 L/kg | Good: 23 L/kg</span>
+                  </div>
+                  <div className="flex justify-between font-bold">
+                    <span className="text-muted-foreground">Fabric Washing:</span>
+                    <span className="text-emerald-600 dark:text-emerald-400">Exc: 41 L/kg | Good: 56 L/kg</span>
+                  </div>
+                  <div className="flex justify-between font-bold">
+                    <span className="text-muted-foreground">Garments Standard:</span>
+                    <span className="text-purple-600 dark:text-purple-400">Exc: 46 L/kg | Good: 63 L/kg</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 3: WASTEWATER MANAGEMENT & LIVE SENSOR READINGS */}
+              <div className="space-y-6">
+                {/* Wastewater Management (WTP/ETP) */}
+                <div className="bg-background/80 rounded-2xl border border-border/70 p-5 space-y-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">WASTEWATER MANAGEMENT (WTP/ETP)</h4>
+                      <span className="text-xs font-black text-foreground">ETP INFLOW vs. TREATED</span>
+                    </div>
+                    <div className="px-2.5 py-1 bg-sky-500/10 border border-sky-500/30 text-sky-600 dark:text-sky-400 font-extrabold text-xs rounded-xl shadow-sm">
+                      REUSE RATE: 35%
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-xs font-bold pt-1">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2.5 h-2.5 bg-rose-500 rounded-full" />
+                      <span className="text-muted-foreground">INFLOW</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />
+                      <span className="text-muted-foreground">TREATED</span>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-[140px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={etpComparisonData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 2" vertical={false} opacity={0.2} />
+                        <XAxis dataKey="name" stroke="#888888" fontSize={9} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#888888" fontSize={9} tickLine={false} axisLine={false} domain={[0, 150]} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '11px' }}
+                          itemStyle={{ color: '#1f2937', fontWeight: 700 }}
+                        />
+                        <Bar dataKey="inflow" fill="#ef4444" radius={[2, 2, 0, 0]} />
+                        <Bar dataKey="treated" fill="#22c55e" radius={[2, 2, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Live Sensor Readings Table with Highlighted Warning Cells */}
+                <div className="bg-background/80 rounded-2xl border border-border/70 p-5 space-y-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                      <span>LIVE SENSOR READINGS</span>
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                    </h4>
+                    <span className="text-[10px] font-bold text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-md">
+                      Area: {selectedProcessType}
                     </span>
                   </div>
 
-                  <div className={`p-2.5 rounded-xl border text-xs font-bold text-center ${goodsRatioRating.bg}`}>
-                    Current Intensity: {goodsRatioBenchmark.current} L/Kg — {goodsRatioRating.label}
-                  </div>
-                </div>
-              </div>
-
-              {/* Utilities & Domestic Card */}
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 shadow-sm space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-xs font-bold text-emerald-800/80 dark:text-emerald-300/80 uppercase">Utilities & Domestic</span>
-                    <h4 className="text-2xl font-black mt-1 text-foreground">Sanitation & Steam</h4>
-                  </div>
-                  <div className="p-2.5 bg-emerald-500/10 text-emerald-600 rounded-xl">
-                    <Building2 className="w-5 h-5" />
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-background/80 border border-border/60 space-y-2 text-xs font-semibold">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Boiler Steam Generation:</span>
-                    <span className="font-bold text-foreground">{deptSummary.boiler.toLocaleString()} m³</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Cooling Purpose Use:</span>
-                    <span className="font-bold text-foreground">{deptSummary.cooling.toLocaleString()} m³</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Toilet & Canteen Sanitation:</span>
-                    <span className="font-bold text-foreground">{deptSummary.sanitation.toLocaleString()} m³</span>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead>
+                        <tr className="border-b border-border/60 text-muted-foreground text-[10px] uppercase font-bold">
+                          <th className="py-1.5 px-2">MACHINE ID</th>
+                          <th className="py-1.5 px-2">FLOW (L/m)</th>
+                          <th className="py-1.5 px-2">TEMP</th>
+                          <th className="py-1.5 px-2">PH</th>
+                          <th className="py-1.5 px-2">OPERATOR</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/30">
+                        {liveSensorReadings.map((sensor) => (
+                          <tr key={sensor.id} className="hover:bg-muted/30 transition-colors font-semibold">
+                            <td className="py-2 px-2 font-bold text-foreground">{sensor.id}</td>
+                            <td className="py-2 px-2 text-foreground">{sensor.flow.toFixed(1)}</td>
+                            <td className="py-2 px-2">
+                              <span className={sensor.isWarningTemp ? "bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded shadow-sm" : "text-foreground"}>
+                                {sensor.temp.toFixed(1)}°
+                              </span>
+                            </td>
+                            <td className="py-2 px-2">
+                              <span className={sensor.isWarningPh ? "bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded shadow-sm" : "text-foreground"}>
+                                {sensor.ph.toFixed(1)}
+                              </span>
+                            </td>
+                            <td className="py-2 px-2 text-muted-foreground truncate max-w-[85px]">{sensor.operator}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
