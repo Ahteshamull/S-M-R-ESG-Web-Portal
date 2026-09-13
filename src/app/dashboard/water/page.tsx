@@ -210,6 +210,7 @@ export default function EnterpriseWaterPortal() {
       case "Washing": return deptSummary.washing;
       case "Printing": return deptSummary.printing;
       case "Utility": return deptSummary.boiler + deptSummary.cooling;
+      case "Garments (Cut to Pack)":
       case "Garments":
       case "Cut to Pack": return Math.round((deptSummary.dyeing + deptSummary.washing) * 0.15);
       default: return kpis.totalWithdrawal;
@@ -405,6 +406,7 @@ export default function EnterpriseWaterPortal() {
       case "Washing": return 20;
       case "Utility": return 10;
       case "Printing": return 8;
+      case "Garments (Cut to Pack)":
       case "Garments":
       case "Cut to Pack": return 7;
       default: return 68;
@@ -423,6 +425,7 @@ export default function EnterpriseWaterPortal() {
       case "Washing": return "150,000";
       case "Utility": return "75,000";
       case "Printing": return "60,000";
+      case "Garments (Cut to Pack)":
       case "Garments":
       case "Cut to Pack": return "52,500";
       default: return "750,000";
@@ -434,6 +437,52 @@ export default function EnterpriseWaterPortal() {
     if (departmentTelemetry) return departmentTelemetry;
 
     const baseUsage = selectedAreaVolume > 0 ? selectedAreaVolume * 1000 : 150000;
+
+    if (selectedProcessType === "Garments (Cut to Pack)" || selectedProcessType === "Garments" || selectedProcessType === "Cut to Pack") {
+      return {
+        department: "Garments (Cut to Pack)",
+        title: "4. Garments & Cut to Pack Resource Management Portal",
+        subtitle: "1. Production & Finishing (Steam Boiler) and 2. Domestic & Sanitation (Drinking, Washrooms, Canteen)",
+        totalUsageLiters: baseUsage > 0 ? baseUsage : 40000,
+        capacityPercent: 7,
+        alertMessage: "NOTICE: Steam boiler lines and workers domestic sanitation & RO drinking lines are fully operational and verified.",
+        breakdownTags: [
+          { name: "Steam Boiler (Finishing)", percentage: 45, color: "#8b5cf6" },
+          { name: "Workers' Drinking Water", percentage: 15, color: "#0ea5e9" },
+          { name: "Washroom Sanitation", percentage: 25, color: "#10b981" },
+          { name: "Canteen Services", percentage: 15, color: "#f59e0b" },
+        ],
+        trendData: dailyTrendData.map(d => ({ ...d, value: Math.round(d.value * 0.07) })),
+        comparisonTitle: "1. Production & Finishing vs. 2. Domestic & Sanitation (m³)",
+        comparisonSubtitle: "Steam boiler consumption, workers' drinking water, washrooms, and canteen audits",
+        comparisonData: [
+          { name: "Steam Boiler (Finishing)", actual: 18, target: 16, unit: "m³" },
+          { name: "Workers' Drinking Water", actual: 6, target: 6, unit: "m³" },
+          { name: "Washroom Sanitation", actual: 10, target: 9, unit: "m³" },
+          { name: "Canteen Services", actual: 6, target: 6, unit: "m³" },
+        ],
+        effluentTitle: "Domestic & Sanitation Drainage Discharge",
+        effluentBadge: "100% Safe Discharge",
+        effluentData: [
+          { name: "Boiler Blowdown", inflow: 12, treated: 12 },
+          { name: "Drinking Water RO", inflow: 8, treated: 8 },
+          { name: "Washrooms Line", inflow: 15, treated: 14 },
+          { name: "Canteen Wash", inflow: 9, treated: 9 },
+        ],
+        sensorTitle: "Live Sub-Meters & IoT Telemetry: Garments (Cut to Pack)",
+        sensorReadings: [
+          { id: "GCP-01 (Steam Boiler)", flow: 5.2, temp: 92.0, ph: 7.8, operator: "1. Production & Finishing", status: "ACTIVE", extraMetric: "Steam Boiler" },
+          { id: "GCP-02 (Drinking Water RO)", flow: 2.1, temp: 21.5, ph: 7.1, operator: "2. Drinking Water RO", status: "OPTIMAL", extraMetric: "TDS: 38 ppm" },
+          { id: "GCP-03 (Washroom Flush)", flow: 4.8, temp: 23.0, ph: 7.3, operator: "2. Washroom Sanitation", status: "PASS", extraMetric: "Washrooms" },
+          { id: "GCP-04 (Canteen Services)", flow: 3.5, temp: 22.5, ph: 7.0, operator: "2. Canteen Services", status: "OPTIMAL", extraMetric: "Canteen" },
+        ],
+        extraCards: [
+          { title: "1. Production & Finishing", value: "Steam Boiler Consumption", subtitle: "Garments ironing, finishing tunnels and packaging steam line", badge: "Production" },
+          { title: "2. Domestic & Sanitation", value: "Drinking Water & Washrooms", subtitle: "Safe RO drinking water for workers and hygiene sanitation lines", badge: "Sanitation" },
+          { title: "Canteen Services", value: "Hygienic Canteen Use", subtitle: "Daily hygienic cooking, kitchen and washing facilities water", badge: "Canteen" },
+        ]
+      };
+    }
     return {
       department: selectedProcessType,
       title: selectedProcessType === "Washing" 
@@ -680,16 +729,15 @@ export default function EnterpriseWaterPortal() {
                 style={{ colorScheme: "dark" }}
               >
                 <option value="All Facilities" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Facilities</option>
-                <option value="Cut to Pack" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Cut to Pack</option>
                 <option value="Washing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Washing</option>
                 <option value="Dyeing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Dyeing</option>
                 <option value="Printing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Printing</option>
                 <option value="Utility" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Utility</option>
-                <option value="Garments" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Garments</option>
+                <option value="Garments (Cut to Pack)" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Garments (Cut to Pack)</option>
               </select>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action */}
             <button
               onClick={handlePrintPdf}
               className="bg-background/90 hover:bg-muted text-foreground border border-border/80 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center h-10 active:scale-95"
@@ -968,8 +1016,7 @@ export default function EnterpriseWaterPortal() {
                     <option value="Washing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Washing Department</option>
                     <option value="Printing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Printing Department</option>
                     <option value="Utility" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Utility Department</option>
-                    <option value="Garments" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Garments Department</option>
-                    <option value="Cut to Pack" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Cut to Pack Department</option>
+                    <option value="Garments (Cut to Pack)" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Garments (Cut to Pack) Department</option>
                   </select>
                 </div>
 
@@ -1250,34 +1297,33 @@ export default function EnterpriseWaterPortal() {
                       <span className="text-purple-600 dark:text-purple-400">&lt; 5 ppm CaCO3</span>
                     </div>
                   </div>
-                ) : selectedProcessType === "Garments" ? (
-                  <div className="p-3 bg-muted/30 border border-border/40 rounded-xl text-xs space-y-1">
-                    <div className="flex justify-between font-bold">
-                      <span className="text-muted-foreground">Piece Intensity Target:</span>
-                      <span className="text-blue-600 dark:text-blue-400">&le; 15.0 L/Pcs Factory Avg</span>
+                ) : (selectedProcessType === "Garments (Cut to Pack)" || selectedProcessType === "Garments" || selectedProcessType === "Cut to Pack") ? (
+                  <div className="p-3 bg-muted/30 border border-border/40 rounded-xl text-xs space-y-2">
+                    <div className="space-y-1">
+                      <div className="text-[11px] font-black text-purple-600 dark:text-purple-400 uppercase">
+                        1. Production & Finishing:
+                      </div>
+                      <div className="flex justify-between font-bold pl-2 border-l-2 border-purple-500/40">
+                        <span className="text-muted-foreground">• Steam Boiler Consumption:</span>
+                        <span className="text-purple-600 dark:text-purple-400">18 m³ (Tunnel & Pressing)</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between font-bold">
-                      <span className="text-muted-foreground">Pressing Steam Leakage:</span>
-                      <span className="text-emerald-600 dark:text-emerald-400">0 Leaks Detected</span>
-                    </div>
-                    <div className="flex justify-between font-bold">
-                      <span className="text-muted-foreground">Sewing Line Humidity:</span>
-                      <span className="text-purple-600 dark:text-purple-400">65% RH Controlled</span>
-                    </div>
-                  </div>
-                ) : selectedProcessType === "Cut to Pack" ? (
-                  <div className="p-3 bg-muted/30 border border-border/40 rounded-xl text-xs space-y-1">
-                    <div className="flex justify-between font-bold">
-                      <span className="text-muted-foreground">Floor Humidity Misting:</span>
-                      <span className="text-blue-600 dark:text-blue-400">64% RH Optimal</span>
-                    </div>
-                    <div className="flex justify-between font-bold">
-                      <span className="text-muted-foreground">Packaging Tunnel Steamer:</span>
-                      <span className="text-emerald-600 dark:text-emerald-400">2.1 bar Controlled</span>
-                    </div>
-                    <div className="flex justify-between font-bold">
-                      <span className="text-muted-foreground">Recycled Flush Usage:</span>
-                      <span className="text-purple-600 dark:text-purple-400">100% Greywater</span>
+                    <div className="space-y-1 pt-1 border-t border-border/30">
+                      <div className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 uppercase">
+                        2. Domestic & Sanitation:
+                      </div>
+                      <div className="flex justify-between font-bold pl-2 border-l-2 border-emerald-500/40">
+                        <span className="text-muted-foreground">• Workers' Drinking Water:</span>
+                        <span className="text-blue-600 dark:text-blue-400">6 m³ (Pure RO Filtered)</span>
+                      </div>
+                      <div className="flex justify-between font-bold pl-2 border-l-2 border-emerald-500/40">
+                        <span className="text-muted-foreground">• Washroom Sanitation:</span>
+                        <span className="text-emerald-600 dark:text-emerald-400">10 m³ (Hygiene Flushing)</span>
+                      </div>
+                      <div className="flex justify-between font-bold pl-2 border-l-2 border-emerald-500/40">
+                        <span className="text-muted-foreground">• Canteen Services:</span>
+                        <span className="text-amber-600 dark:text-amber-400">6 m³ (Cooking & Washing)</span>
+                      </div>
                     </div>
                   </div>
                 ) : (
