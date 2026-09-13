@@ -1,6 +1,7 @@
 import { apiSlice } from '../apiSlice';
 
 export const dashboardApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getDashboardSummary: builder.query<any, void>({
       query: () => '/dashboard/summary',

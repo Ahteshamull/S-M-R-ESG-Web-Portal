@@ -32,6 +32,7 @@ export interface ISupplierRecord {
 }
 
 export const complianceApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getComplianceOverview: builder.query<{ caps: any[]; legalDocs: any[]; committees: any[]; suppliers?: ISupplierRecord[] }, void>({
       query: () => '/compliance/overview',

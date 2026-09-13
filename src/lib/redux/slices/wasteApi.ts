@@ -1,6 +1,7 @@
 import { apiSlice } from '../apiSlice';
 
 export const wasteApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getWasteInventory: builder.query<any[], void>({
       query: () => '/waste/inventory',

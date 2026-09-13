@@ -1,6 +1,7 @@
 import { apiSlice } from '../apiSlice';
 
 export const authApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     login: builder.mutation<any, any>({
       query: (credentials) => ({

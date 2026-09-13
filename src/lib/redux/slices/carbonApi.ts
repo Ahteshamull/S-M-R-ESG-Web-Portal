@@ -1,6 +1,7 @@
 import { apiSlice } from '../apiSlice';
 
 export const carbonApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getCarbonSummary: builder.query<any, void>({
       query: () => '/carbon/summary',

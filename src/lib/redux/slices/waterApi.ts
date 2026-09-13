@@ -6,6 +6,7 @@ export interface WaterLogFilter {
 }
 
 export const waterApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getWaterLogs: builder.query<any[], WaterLogFilter | void>({
       query: (filter) => {

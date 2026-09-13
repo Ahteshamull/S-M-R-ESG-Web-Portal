@@ -1,6 +1,7 @@
 import { apiSlice } from '../apiSlice';
 
 export const energyApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getEnergyLogs: builder.query<any[], { year?: number; month?: string } | void>({
       query: (params) => ({

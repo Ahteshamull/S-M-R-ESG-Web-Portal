@@ -1,6 +1,7 @@
 import { apiSlice } from '../apiSlice';
 
 export const csrApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getCsrEvents: builder.query<{ stats: { totalEventsCount: number; totalBudgetSpent: number }; events: any[] }, void>({
       query: () => '/csr',

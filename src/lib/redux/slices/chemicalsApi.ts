@@ -69,6 +69,7 @@ export interface IChemicalMutationResult {
 }
 
 export const chemicalsApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getChemicals: builder.query<IChemicalItem[], void>({
       query: () => '/chemicals',

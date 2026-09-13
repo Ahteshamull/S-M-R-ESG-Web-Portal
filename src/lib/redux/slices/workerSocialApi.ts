@@ -1,6 +1,7 @@
 import { apiSlice } from '../apiSlice';
 
 export const workerSocialApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getWorkerSocialData: builder.query<{ activeCommitteesCount: number; maternityLeavesCount: number; openGrievancesCount: number; grievances: any[] }, void>({
       query: () => '/worker-social',

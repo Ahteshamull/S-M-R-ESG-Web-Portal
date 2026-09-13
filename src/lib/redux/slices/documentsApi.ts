@@ -29,6 +29,7 @@ export interface DocumentApiResponse<T> {
 }
 
 export const documentsApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getDocuments: builder.query<IDocumentItem[], { category?: string } | void>({
       query: (params) => {

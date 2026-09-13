@@ -1,6 +1,7 @@
 import { apiSlice } from '../apiSlice';
 
 export const factoryApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getFactoryProfile: builder.query<any, void>({
       query: () => '/factory',

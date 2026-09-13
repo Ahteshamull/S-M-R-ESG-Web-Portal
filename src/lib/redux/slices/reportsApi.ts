@@ -62,6 +62,7 @@ export interface IESGExportRow {
 }
 
 export const reportsApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getReportsSummary: builder.query<IESGReportSummary, { year?: number; month?: string } | void>({
       query: (params) => ({

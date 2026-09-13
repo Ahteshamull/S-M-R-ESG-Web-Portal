@@ -1,6 +1,7 @@
 import { apiSlice } from '../apiSlice';
 
 export const trainingApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getTrainings: builder.query<{ stats: { totalHours: number; trainedWorkers: number; upcomingSessions: number; competencyScore: number }; sessions: any[] }, void>({
       query: () => '/training',
