@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Zap, Activity, Battery, Plus, Table2, ShieldCheck, Flame, Cpu, Download, Loader2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Zap, Activity, Battery, Plus, Table2, ShieldCheck, Flame, Cpu, Download, Loader2, Filter, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -12,6 +12,7 @@ interface EnergyLog {
   _id?: string;
   id?: string;
   month: string;
+  year?: number;
   gas: number;
   diesel: number;
   electricity: number;
@@ -20,10 +21,17 @@ interface EnergyLog {
 
 const initialData: EnergyLog[] = [];
 
+const ENERGY_MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const ENERGY_YEARS = [2026, 2025, 2024];
+
 export default function EnergyPage() {
   const { data: energyLogs = [], isLoading } = useGetEnergyLogsQuery();
   const [createEnergyLog, { isLoading: isSaving }] = useCreateEnergyLogMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Month and Yearly Filter States
+  const [selectedYear, setSelectedYear] = useState<number | "All">("All");
+  const [selectedMonth, setSelectedMonth] = useState<string>("All");
   
   // Form State
   const [logMonth, setLogMonth] = useState("JUN");
@@ -31,6 +39,15 @@ export default function EnergyPage() {
   const [dieselVal, setDieselVal] = useState<number | "">("");
   const [electricityVal, setElectricityVal] = useState<number | "">("");
   const [shippedVal, setShippedVal] = useState<number | "">("");
+
+  // Dynamically Filtered Energy Logs
+  const filteredEnergyLogs = useMemo(() => {
+    return energyLogs.filter((log: any) => {
+      const matchYear = selectedYear === "All" || (log.year ? log.year === selectedYear : true);
+      const matchMonth = selectedMonth === "All" || log.month.toUpperCase().startsWith(selectedMonth.toUpperCase().substring(0, 3));
+      return matchYear && matchMonth;
+    });
+  }, [energyLogs, selectedYear, selectedMonth]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,11 +76,11 @@ export default function EnergyPage() {
     }
   };
 
-  // Calculations for Totals
-  const totalGas = energyLogs.reduce((acc, curr) => acc + curr.gas, 0);
-  const totalDiesel = energyLogs.reduce((acc, curr) => acc + curr.diesel, 0);
-  const totalElectricity = energyLogs.reduce((acc, curr) => acc + curr.electricity, 0);
-  const totalShipped = energyLogs.reduce((acc, curr) => acc + curr.shipped, 0);
+  // Calculations for Totals based on filteredEnergyLogs
+  const totalGas = filteredEnergyLogs.reduce((acc, curr) => acc + curr.gas, 0);
+  const totalDiesel = filteredEnergyLogs.reduce((acc, curr) => acc + curr.diesel, 0);
+  const totalElectricity = filteredEnergyLogs.reduce((acc, curr) => acc + curr.electricity, 0);
+  const totalShipped = filteredEnergyLogs.reduce((acc, curr) => acc + curr.shipped, 0);
 
   const totalGasKPI = totalShipped > 0 ? (totalGas / totalShipped).toFixed(5) : "0";
   const totalDieselKPI = totalShipped > 0 ? (totalDiesel / totalShipped).toFixed(5) : "0";
@@ -78,18 +95,44 @@ export default function EnergyPage() {
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-amber-600 to-orange-500 dark:from-amber-400 dark:to-orange-300 bg-clip-text text-transparent">Energy Management</h1>
           <p className="text-sm text-muted-foreground mt-1.5 font-medium">Track electricity, gas, and diesel consumption across facilities.</p>
         </div>
-        <div className="relative z-10 flex items-center gap-3">
+        <div className="relative z-10 flex flex-wrap items-center gap-3">
+          {/* Year Filter */}
+          <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur-md px-3 py-2 rounded-xl border border-border/80 shadow-sm text-xs font-semibold">
+            <Calendar className="w-3.5 h-3.5 text-amber-600" />
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === "All" ? "All" : Number(e.target.value))}
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+            >
+              <option value="All">All Years</option>
+              {ENERGY_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+
+          {/* Month Filter */}
+          <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur-md px-3 py-2 rounded-xl border border-border/80 shadow-sm text-xs font-semibold">
+            <Filter className="w-3.5 h-3.5 text-amber-600" />
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+            >
+              <option value="All">All Months (YTD)</option>
+              {ENERGY_MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+
           <button 
-            onClick={() => exportEnergyToExcel({ energyLogs, totalGas, totalDiesel, totalElectricity, totalShipped })}
-            className="group bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md shadow-blue-500/20 hover:shadow-blue-500/40 flex items-center h-10 active:scale-95"
+            onClick={() => exportEnergyToExcel({ energyLogs: filteredEnergyLogs.length > 0 ? filteredEnergyLogs : energyLogs, totalGas, totalDiesel, totalElectricity, totalShipped })}
+            className="group bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-md shadow-blue-500/20 hover:shadow-blue-500/40 flex items-center h-10 active:scale-95"
           >
-            <Download className="w-4 h-4 mr-2" /> Export to Excel
+            <Download className="w-4 h-4 mr-1.5" /> Export Excel
           </button>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="group bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md shadow-amber-500/20 hover:shadow-amber-500/40 flex items-center h-10 active:scale-95"
+            className="group bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-md shadow-amber-500/20 hover:shadow-amber-500/40 flex items-center h-10 active:scale-95"
           >
-            <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" /> Log Energy Use
+            <Plus className="w-4 h-4 mr-1.5 group-hover:rotate-90 transition-transform" /> Log Energy
           </button>
         </div>
       </div>
@@ -160,7 +203,7 @@ export default function EnergyPage() {
           <div className="w-full h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
-                data={energyLogs}
+                data={filteredEnergyLogs}
                 margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
               >
                 <defs>
@@ -248,7 +291,7 @@ export default function EnergyPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {energyLogs.map((log) => (
+                {filteredEnergyLogs.map((log) => (
                   <tr key={`gas-${log.id}`} className="hover:bg-muted/30 transition-colors text-right">
                     <td className="px-4 py-3 border-r border-border font-medium text-left sticky left-0 bg-background z-10">{log.month}</td>
                     <td className="px-4 py-3 border-r border-border text-foreground font-medium">{log.gas.toLocaleString()}</td>
@@ -291,7 +334,7 @@ export default function EnergyPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {energyLogs.map((log) => (
+                {filteredEnergyLogs.map((log) => (
                   <tr key={`diesel-${log.id}`} className="hover:bg-muted/30 transition-colors text-right">
                     <td className="px-4 py-3 border-r border-border font-medium text-left sticky left-0 bg-background z-10">{log.month}</td>
                     <td className="px-4 py-3 border-r border-border text-foreground font-medium">{log.diesel.toLocaleString()}</td>
@@ -334,7 +377,7 @@ export default function EnergyPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {energyLogs.map((log) => (
+                {filteredEnergyLogs.map((log) => (
                   <tr key={`elec-${log.id}`} className="hover:bg-muted/30 transition-colors text-right">
                     <td className="px-4 py-3 border-r border-border font-medium text-left sticky left-0 bg-background z-10">{log.month}</td>
                     <td className="px-4 py-3 border-r border-border text-foreground font-medium">{log.electricity.toLocaleString()}</td>

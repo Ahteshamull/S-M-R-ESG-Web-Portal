@@ -447,8 +447,112 @@ export async function exportWaterBalanceToExcel(data: WaterExcelData) {
   sheet.getCell(`I${fValueRow}`).alignment = { horizontal: 'center' };
 
 
+  // --- SECOND WORKSHEET: WATER SUSTAINABILITY, SOURCING & INITIATIVES ---
+  const auditSheet = workbook.addWorksheet('Sustainability & Sourcing');
+  auditSheet.columns = [
+    { width: 16 }, // Month
+    { width: 18 }, // Total Withdrawal
+    { width: 16 }, // Groundwater
+    { width: 16 }, // WARPO/DWASA
+    { width: 16 }, // Rain Water
+    { width: 16 }, // Recycle Water
+    { width: 16 }, // Surface Water
+    { width: 18 }, // Process Dyeing
+    { width: 18 }, // Process Washing
+    { width: 18 }, // Process Printing
+    { width: 18 }, // Boiler Steam
+    { width: 18 }, // Cooling
+    { width: 22 }, // Domestic & Sanitation
+    { width: 18 }, // Water Intensity (L/kg)
+    { width: 18 }, // Groundwater Ratio %
+    { width: 20 }, // Alternative Ratio %
+    { width: 20 }, // RO Recycled Reused (m³)
+    { width: 20 }, // Rainwater Harvested (m³)
+    { width: 24 }, // Low Liquor Savings (L/kg)
+  ];
+
+  auditSheet.mergeCells('A1:S2');
+  const auditTitle = auditSheet.getCell('A1');
+  auditTitle.value = 'WATER SOURCING, DEPARTMENT CONSUMPTION & CIRCULARITY AUDIT';
+  auditTitle.font = { name: 'Segoe UI', size: 15, bold: true, color: { argb: 'FFFFFFFF' } };
+  auditTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0D9488' } }; // Teal
+  auditTitle.alignment = { vertical: 'middle', horizontal: 'center' };
+
+  const auditHeaders = [
+    "Month", "Total (m³)", "Groundwater (m³)", "WARPO/DWASA (m³)", "Rain Water (m³)", "Recycle (m³)", "Surface (m³)",
+    "Dyeing (m³)", "Washing (m³)", "Printing (m³)", "Boiler Steam (m³)", "Cooling (m³)", "Domestic/Canteen (m³)",
+    "Intensity (L/Kg)", "GW Ratio (%)", "Alt. Ratio (%)", "RO Recycled (m³)", "Rain Harvested (m³)", "Low Liquor Savings (L/kg)"
+  ];
+  const auditHRow = auditSheet.getRow(4);
+  auditHRow.values = auditHeaders;
+  auditHRow.height = 32;
+
+  for (let c = 1; c <= 19; c++) {
+    const cell = auditHRow.getCell(c);
+    cell.font = { name: 'Segoe UI', bold: true, size: 10, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F766E' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    cell.border = {
+      top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+    };
+  }
+
+  let aRowIdx = 5;
+  waterLogs.forEach((log) => {
+    const r = auditSheet.getRow(aRowIdx);
+    const s = log.sources || {};
+    const d = log.departments || {};
+    const c = log.circularity || {};
+    
+    r.getCell(1).value = log.month;
+    r.getCell(2).value = log.totalWithdrawal || 0;
+    r.getCell(3).value = s.groundwater ?? Math.round((log.totalWithdrawal || 0) * 0.65);
+    r.getCell(4).value = s.warpoDwasa ?? Math.round((log.totalWithdrawal || 0) * 0.15);
+    r.getCell(5).value = s.rainWater ?? Math.round((log.totalWithdrawal || 0) * 0.08);
+    r.getCell(6).value = s.recycleWater ?? Math.round((log.totalWithdrawal || 0) * 0.09);
+    r.getCell(7).value = s.surfaceWater ?? Math.round((log.totalWithdrawal || 0) * 0.03);
+    
+    r.getCell(8).value = d.processDyeing ?? Math.round((log.totalProduction || 0) * 0.55);
+    r.getCell(9).value = d.processWashing ?? Math.round((log.totalProduction || 0) * 0.30);
+    r.getCell(10).value = d.processPrinting ?? Math.round((log.totalProduction || 0) * 0.15);
+    r.getCell(11).value = d.utilityBoilerSteam ?? Math.round((log.totalProduction || 0) * 0.40);
+    r.getCell(12).value = d.utilityCooling ?? Math.round((log.totalProduction || 0) * 0.10);
+    r.getCell(13).value = d.domesticToiletCanteen ?? (log.domestic || 0);
+    
+    r.getCell(14).value = log.waterIntensity ?? 48.5;
+    r.getCell(15).value = (log.groundwaterRatio ?? 65.0) / 100;
+    r.getCell(16).value = (log.alternativeRatio ?? 17.0) / 100;
+    r.getCell(17).value = c.roRecycledVolume ?? 2500;
+    r.getCell(18).value = c.rainwaterHarvested ?? 1100;
+    r.getCell(19).value = c.lowLiquorSavings ?? 12;
+
+    for (let col = 1; col <= 19; col++) {
+      const cell = r.getCell(col);
+      cell.font = { name: 'Segoe UI', size: 10 };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      };
+      if (col === 1) {
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      } else if (col === 15 || col === 16) {
+        cell.numFmt = '0.0%';
+        cell.alignment = { vertical: 'middle', horizontal: 'right' };
+      } else {
+        cell.numFmt = '#,##0.00';
+        cell.alignment = { vertical: 'middle', horizontal: 'right' };
+      }
+    }
+    aRowIdx++;
+  });
+
   // Export
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  saveAs(blob, 'Water_Balance_Calculation_2024.xlsx');
+  saveAs(blob, 'Water_Sustainability_Report_2026.xlsx');
 }

@@ -119,6 +119,14 @@ export const complianceApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Compliance'],
     }),
+    addSupplierAssessment: builder.mutation<any, { supplierId: string; assessment: IAssessmentItem }>({
+      query: ({ supplierId, assessment }) => ({
+        url: `/compliance/suppliers/${supplierId}/assessments`,
+        method: 'POST',
+        body: assessment,
+      }),
+      invalidatesTags: ['Compliance'],
+    }),
   }),
 });
 
@@ -135,5 +143,6 @@ export const {
   useCreateSupplierMutation,
   useUpdateSupplierMutation,
   useDeleteSupplierMutation,
+  useAddSupplierAssessmentMutation,
 } = complianceApi;
 

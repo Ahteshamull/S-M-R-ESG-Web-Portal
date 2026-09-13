@@ -118,6 +118,12 @@ export default function CarbonPage() {
     }
   };
 
+  const [selectedYear, setSelectedYear] = useState<number | "All">("All");
+  const [selectedMonth, setSelectedMonth] = useState<string>("All");
+
+  const CARBON_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const CARBON_YEARS = [2026, 2025, 2024];
+
   const handleDownloadReport = () => {
     toast.success("Generating Carbon Footprint Report (PDF)...");
   };
@@ -131,6 +137,32 @@ export default function CarbonPage() {
           <p className="text-sm text-muted-foreground mt-1">Track GHG emissions across Scope 1, 2, and 3 value chains.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          {/* Year Filter */}
+          <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-border text-xs font-semibold shadow-sm">
+            <span className="text-muted-foreground">Year:</span>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === "All" ? "All" : Number(e.target.value))}
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer font-bold"
+            >
+              <option value="All">All Years</option>
+              {CARBON_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+
+          {/* Month Filter */}
+          <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-border text-xs font-semibold shadow-sm">
+            <span className="text-muted-foreground">Month:</span>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer font-bold"
+            >
+              <option value="All">All Months (YTD)</option>
+              {CARBON_MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+
           <button 
             onClick={handleDownloadReport}
             className="bg-white dark:bg-zinc-900 border border-border text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center shadow-sm"

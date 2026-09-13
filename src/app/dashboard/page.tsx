@@ -23,7 +23,29 @@ export default function DashboardOverview() {
   const { data: summary, isLoading } = useGetDashboardSummaryQuery();
 
   const handleDownload = () => {
-    toast.success("Generating ESG Report...");
+    const headers = ["ESG Metric", "Value", "Unit"];
+    const rows = [
+      ["Total Electricity Consumption", kpis.totalEnergy, "MWh"],
+      ["Total Water Withdrawal", kpis.totalWater, "m3"],
+      ["Total Carbon Emissions", kpis.totalCarbon, "tCO2e"],
+      ["Compliance Score", `${kpis.complianceScore}%`, "%"],
+      ["Report Date", new Date().toLocaleDateString(), "Date"],
+    ];
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Factory_ESG_Overview_Report.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Factory ESG Overview Report downloaded!");
   };
 
   if (isLoading) {

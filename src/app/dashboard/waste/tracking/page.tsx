@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Plus, Download, PlusCircle } from "lucide-react";
+import { useState, useMemo } from "react";
+import { ArrowLeft, Plus, Download, PlusCircle, Filter, Calendar } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
 import toast from "react-hot-toast";
@@ -10,12 +10,16 @@ import { exportWasteGenerationExcel } from "@/lib/exportWasteExcel";
 export interface WasteGenerationRecord {
   id: string;
   month: string;
+  year?: number;
   nonHaz: Record<string, number>;
   haz: Record<string, number>;
 }
 
 const initialNonHazCols = ['Jhut', 'Paper cartoon', 'Paper Roll', 'Poly Bag & Gani', 'Moni Fabric', 'Loose Thread', 'Empty Cone', 'Iron Cloth', 'Plastics (Hanger)', 'Dust', 'Broken Chair', 'Water tank', 'Printed paper', 'Iron', 'Tin', 'Thai Aluminium', 'Food'];
 const initialHazCols = ['Empty containers (cleaning/sanitizing)', 'Batteries', 'Chemical drum (steel)', 'Chemical drum (plastic)', 'Fluorescent light bulb', 'Ink cartridges', 'Electronic waste'];
+
+const WASTE_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const WASTE_YEARS = [2026, 2025, 2024];
 
 import { useGetWasteTrackingQuery, useCreateWasteTrackingMutation } from "@/lib/redux/slices/wasteApi";
 
@@ -24,6 +28,19 @@ export default function WasteGenerationPage() {
   const [createWasteTracking] = useCreateWasteTrackingMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"nonHaz" | "haz">("nonHaz");
+
+  // Month & Yearly Filters
+  const [selectedYear, setSelectedYear] = useState<number | "All">("All");
+  const [selectedMonth, setSelectedMonth] = useState<string>("All");
+
+  // Filtered records based on Month and Year
+  const filteredRecords = useMemo(() => {
+    return records.filter((r: any) => {
+      const matchYear = selectedYear === "All" || (r.year ? r.year === selectedYear : true);
+      const matchMonth = selectedMonth === "All" || r.month.toLowerCase() === selectedMonth.toLowerCase();
+      return matchYear && matchMonth;
+    });
+  }, [records, selectedYear, selectedMonth]);
 
   // Dynamic Columns State
   const [nonHazCols, setNonHazCols] = useState<string[]>(initialNonHazCols);
@@ -105,18 +122,44 @@ export default function WasteGenerationPage() {
           </div>
           <p className="text-sm text-muted-foreground mt-1.5 font-medium ml-12">Detailed tracking of non-hazardous and hazardous waste categories.</p>
         </div>
-        <div className="relative z-10 flex items-center gap-3">
+        <div className="relative z-10 flex flex-wrap items-center gap-3">
+          {/* Year Filter */}
+          <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur-md px-3 py-2 rounded-xl border border-border/80 shadow-sm text-xs font-semibold">
+            <Calendar className="w-3.5 h-3.5 text-blue-600" />
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === "All" ? "All" : Number(e.target.value))}
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+            >
+              <option value="All">All Years</option>
+              {WASTE_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+
+          {/* Month Filter */}
+          <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur-md px-3 py-2 rounded-xl border border-border/80 shadow-sm text-xs font-semibold">
+            <Filter className="w-3.5 h-3.5 text-blue-600" />
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+            >
+              <option value="All">All Months (YTD)</option>
+              {WASTE_MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+
           <button 
-            onClick={() => exportWasteGenerationExcel(records, nonHazCols, hazCols)}
-            className="bg-white/50 hover:bg-white text-blue-700 dark:bg-white/10 dark:hover:bg-white/20 dark:text-blue-300 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center h-10 border border-blue-200 dark:border-blue-800"
+            onClick={() => exportWasteGenerationExcel(filteredRecords.length > 0 ? filteredRecords : records, nonHazCols, hazCols)}
+            className="bg-white/50 hover:bg-white text-blue-700 dark:bg-white/10 dark:hover:bg-white/20 dark:text-blue-300 px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors flex items-center h-10 border border-blue-200 dark:border-blue-800"
           >
-            <Download className="w-4 h-4 mr-2" /> Export
+            <Download className="w-4 h-4 mr-1.5" /> Export Excel
           </button>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="group bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md shadow-blue-500/20 hover:shadow-blue-500/40 flex items-center h-10 active:scale-95"
+            className="group bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-md shadow-blue-500/20 hover:shadow-blue-500/40 flex items-center h-10 active:scale-95"
           >
-            <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" /> Log Monthly Data
+            <Plus className="w-4 h-4 mr-1.5 group-hover:rotate-90 transition-transform" /> Log Monthly Data
           </button>
         </div>
       </div>
@@ -131,7 +174,7 @@ export default function WasteGenerationPage() {
             <thead className="bg-muted/30 font-medium">
               <tr>
                 <th className="px-4 py-3 border border-border text-left sticky left-0 bg-muted/50 backdrop-blur-md z-20 shadow-[1px_0_0_0_var(--border)] font-semibold">Waste Category / Item</th>
-                {records.map(r => (
+                {filteredRecords.map(r => (
                   <th key={r.id} className="px-3 py-3 border border-border text-center font-semibold">{r.month}</th>
                 ))}
                 <th className="px-4 py-3 border border-border text-center bg-emerald-50/50 dark:bg-emerald-900/10 text-emerald-800 dark:text-emerald-300 font-bold min-w-[120px]">Total YTD</th>
@@ -139,11 +182,11 @@ export default function WasteGenerationPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {nonHazCols.map((col, idx) => {
-                const rowTotal = records.reduce((sum, r) => sum + (r.nonHaz[col] || 0), 0);
+                const rowTotal = filteredRecords.reduce((sum, r) => sum + (r.nonHaz[col] || 0), 0);
                 return (
                   <tr key={col} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-2.5 font-medium sticky left-0 bg-background border border-border shadow-[1px_0_0_0_var(--border)] z-10">{col}</td>
-                    {records.map(r => (
+                    {filteredRecords.map(r => (
                       <td key={`${col}-${r.id}`} className="px-3 py-2.5 border border-border text-center text-muted-foreground">
                         {r.nonHaz[col] || 0}
                       </td>
@@ -152,15 +195,15 @@ export default function WasteGenerationPage() {
                   </tr>
                 );
               })}
-              {records.length > 0 && (
+              {filteredRecords.length > 0 && (
                 <tr className="bg-muted/40 font-bold border-t-2 border-border text-sm">
                   <td className="px-4 py-3.5 font-bold sticky left-0 bg-muted/40 border border-border shadow-[1px_0_0_0_var(--border)] z-10 text-right uppercase tracking-wider text-muted-foreground">Monthly Total</td>
-                  {records.map(r => {
+                  {filteredRecords.map(r => {
                     const monthTotal = nonHazCols.reduce((sum, col) => sum + (r.nonHaz[col] || 0), 0);
                     return <td key={`total-${r.id}`} className="px-3 py-3.5 border border-border text-center text-foreground">{monthTotal.toFixed(1)}</td>
                   })}
                   <td className="px-4 py-3.5 border border-border text-center text-emerald-700 dark:text-emerald-400 bg-emerald-100/50 dark:bg-emerald-900/20 text-base">
-                    {records.reduce((sum, r) => sum + nonHazCols.reduce((s, col) => s + (r.nonHaz[col] || 0), 0), 0).toFixed(1)}
+                    {filteredRecords.reduce((sum, r) => sum + nonHazCols.reduce((s, col) => s + (r.nonHaz[col] || 0), 0), 0).toFixed(1)}
                   </td>
                 </tr>
               )}
@@ -179,7 +222,7 @@ export default function WasteGenerationPage() {
             <thead className="bg-muted/30 font-medium">
               <tr>
                 <th className="px-4 py-3 border border-border text-left sticky left-0 bg-muted/50 backdrop-blur-md z-20 shadow-[1px_0_0_0_var(--border)] font-semibold">Waste Category / Item</th>
-                {records.map(r => (
+                {filteredRecords.map(r => (
                   <th key={r.id} className="px-3 py-3 border border-border text-center font-semibold">{r.month}</th>
                 ))}
                 <th className="px-4 py-3 border border-border text-center bg-rose-50/50 dark:bg-rose-900/10 text-rose-800 dark:text-rose-300 font-bold min-w-[120px]">Total YTD</th>
@@ -187,11 +230,11 @@ export default function WasteGenerationPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {hazCols.map((col, idx) => {
-                const rowTotal = records.reduce((sum, r) => sum + (r.haz[col] || 0), 0);
+                const rowTotal = filteredRecords.reduce((sum, r) => sum + (r.haz[col] || 0), 0);
                 return (
                   <tr key={col} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-2.5 font-medium sticky left-0 bg-background border border-border shadow-[1px_0_0_0_var(--border)] z-10">{col}</td>
-                    {records.map(r => (
+                    {filteredRecords.map(r => (
                       <td key={`${col}-${r.id}`} className="px-3 py-2.5 border border-border text-center text-muted-foreground">
                         {r.haz[col] || 0}
                       </td>
@@ -200,15 +243,15 @@ export default function WasteGenerationPage() {
                   </tr>
                 );
               })}
-              {records.length > 0 && (
+              {filteredRecords.length > 0 && (
                 <tr className="bg-muted/40 font-bold border-t-2 border-border text-sm">
                   <td className="px-4 py-3.5 font-bold sticky left-0 bg-muted/40 border border-border shadow-[1px_0_0_0_var(--border)] z-10 text-right uppercase tracking-wider text-muted-foreground">Monthly Total</td>
-                  {records.map(r => {
+                  {filteredRecords.map(r => {
                     const monthTotal = hazCols.reduce((sum, col) => sum + (r.haz[col] || 0), 0);
                     return <td key={`total-haz-${r.id}`} className="px-3 py-3.5 border border-border text-center text-foreground">{monthTotal.toFixed(1)}</td>
                   })}
                   <td className="px-4 py-3.5 border border-border text-center text-rose-700 dark:text-rose-400 bg-rose-100/50 dark:bg-rose-900/20 text-base">
-                    {records.reduce((sum, r) => sum + hazCols.reduce((s, col) => s + (r.haz[col] || 0), 0), 0).toFixed(1)}
+                    {filteredRecords.reduce((sum, r) => sum + hazCols.reduce((s, col) => s + (r.haz[col] || 0), 0), 0).toFixed(1)}
                   </td>
                 </tr>
               )}

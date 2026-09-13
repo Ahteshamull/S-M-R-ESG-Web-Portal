@@ -2,8 +2,11 @@ import { apiSlice } from '../apiSlice';
 
 export const energyApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getEnergyLogs: builder.query<any[], void>({
-      query: () => '/energy',
+    getEnergyLogs: builder.query<any[], { year?: number; month?: string } | void>({
+      query: (params) => ({
+        url: '/energy',
+        params: params || {},
+      }),
       transformResponse: (response: any) => response.data,
       providesTags: (result) =>
         result

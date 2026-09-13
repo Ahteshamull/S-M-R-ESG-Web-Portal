@@ -48,8 +48,11 @@ export const wasteApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Waste', id: 'RECYCLE' }],
     }),
-    getWasteTracking: builder.query<any[], void>({
-      query: () => '/waste/tracking',
+    getWasteTracking: builder.query<any[], { year?: number; month?: string } | void>({
+      query: (params) => ({
+        url: '/waste/tracking',
+        params: params || {},
+      }),
       transformResponse: (response: any) => response.data,
       providesTags: (result) =>
         result
