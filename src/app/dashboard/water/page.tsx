@@ -73,11 +73,11 @@ export default function EnterpriseWaterPortal() {
   // Filters
   const [selectedYear, setSelectedYear] = useState<number | "All">("All");
   const [selectedMonth, setSelectedMonth] = useState<string>("All");
-  const [selectedPlant, setSelectedPlant] = useState<string>("Apex Unit 1 (Dyeing & Washing)");
+  const [selectedPlant, setSelectedPlant] = useState<string>("All Facilities");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Process Water Dropdown selection (Section 4)
-  const [selectedProcessType, setSelectedProcessType] = useState<"Dyeing" | "Washing" | "Printing">("Dyeing");
+  const [selectedProcessType, setSelectedProcessType] = useState<"Dyeing" | "Washing" | "Printing" | "Utility" | "Garments">("Dyeing");
   const [selectedGoodsType, setSelectedGoodsType] = useState<"denim" | "fabric_washing" | "garment">("denim");
 
   // Modals
@@ -91,35 +91,35 @@ export default function EnterpriseWaterPortal() {
   const [formMonth, setFormMonth] = useState<string>("January");
   const [formYear, setFormYear] = useState<number>(2026);
   const [formGoodsType, setFormGoodsType] = useState<"denim" | "fabric_washing" | "garment">("denim");
-  const [formProductionKg, setFormProductionKg] = useState<number | "">(52000);
+  const [formProductionKg, setFormProductionKg] = useState<number | "">("");
   const [formLiquorRatio, setFormLiquorRatio] = useState<string>("1:7");
 
   // Sourcing Inputs (Section 3)
-  const [formGroundwater, setFormGroundwater] = useState<number | "">(3250);
-  const [formWarpoDwasa, setFormWarpoDwasa] = useState<number | "">(750);
-  const [formRainWater, setFormRainWater] = useState<number | "">(400);
-  const [formRecycleWater, setFormRecycleWater] = useState<number | "">(450);
-  const [formSurfaceWater, setFormSurfaceWater] = useState<number | "">(150);
+  const [formGroundwater, setFormGroundwater] = useState<number | "">("");
+  const [formWarpoDwasa, setFormWarpoDwasa] = useState<number | "">("");
+  const [formRainWater, setFormRainWater] = useState<number | "">("");
+  const [formRecycleWater, setFormRecycleWater] = useState<number | "">("");
+  const [formSurfaceWater, setFormSurfaceWater] = useState<number | "">("");
 
   // Departmental Inputs (Section 4)
-  const [formProcessDyeing, setFormProcessDyeing] = useState<number | "">(2200);
-  const [formProcessWashing, setFormProcessWashing] = useState<number | "">(1200);
-  const [formProcessPrinting, setFormProcessPrinting] = useState<number | "">(600);
-  const [formBoilerSteam, setFormBoilerSteam] = useState<number | "">(450);
-  const [formCooling, setFormCooling] = useState<number | "">(200);
-  const [formToiletCanteen, setFormToiletCanteen] = useState<number | "">(230);
-  const [formDiningDrinking, setFormDiningDrinking] = useState<number | "">(120);
+  const [formProcessDyeing, setFormProcessDyeing] = useState<number | "">("");
+  const [formProcessWashing, setFormProcessWashing] = useState<number | "">("");
+  const [formProcessPrinting, setFormProcessPrinting] = useState<number | "">("");
+  const [formBoilerSteam, setFormBoilerSteam] = useState<number | "">("");
+  const [formCooling, setFormCooling] = useState<number | "">("");
+  const [formToiletCanteen, setFormToiletCanteen] = useState<number | "">("");
+  const [formDiningDrinking, setFormDiningDrinking] = useState<number | "">("");
 
   // Circularity Inputs (Section 5)
-  const [formRoRecycled, setFormRoRecycled] = useState<number | "">(2500);
-  const [formRainHarvested, setFormRainHarvested] = useState<number | "">(1100);
-  const [formLowLiquorSavings, setFormLowLiquorSavings] = useState<number | "">(12);
+  const [formRoRecycled, setFormRoRecycled] = useState<number | "">("");
+  const [formRainHarvested, setFormRainHarvested] = useState<number | "">("");
+  const [formLowLiquorSavings, setFormLowLiquorSavings] = useState<number | "">("");
 
   // Compliance & Regulatory (Section 6 & 7)
-  const [formSubmeteringCoverage, setFormSubmeteringCoverage] = useState<number | "">(92);
-  const [formHiggScore, setFormHiggScore] = useState<number | "">(88);
-  const [formInletWater, setFormInletWater] = useState<number | "">(4800);
-  const [formOutletWater, setFormOutletWater] = useState<number | "">(4200);
+  const [formSubmeteringCoverage, setFormSubmeteringCoverage] = useState<number | "">("");
+  const [formHiggScore, setFormHiggScore] = useState<number | "">("");
+  const [formInletWater, setFormInletWater] = useState<number | "">("");
+  const [formOutletWater, setFormOutletWater] = useState<number | "">("");
 
   // Filtered Logs
   const filteredLogs = useMemo(() => {
@@ -137,14 +137,14 @@ export default function EnterpriseWaterPortal() {
   // Aggregate Key Performance Indicators (KPIs)
   const kpis = useMemo(() => {
     const totalWithdrawal = filteredLogs.reduce((sum, log) => sum + (Number(log.totalWithdrawal) || 0), 0);
-    const totalProdKg = filteredLogs.reduce((sum, log) => sum + (Number(log.productionKg) || 50000), 0);
-    const totalGroundwater = filteredLogs.reduce((sum, log) => sum + (Number(log.sources?.groundwater) || Math.round((log.totalWithdrawal || 0) * 0.65)), 0);
-    const totalRain = filteredLogs.reduce((sum, log) => sum + (Number(log.sources?.rainWater) || Math.round((log.totalWithdrawal || 0) * 0.08)), 0);
-    const totalRecycle = filteredLogs.reduce((sum, log) => sum + (Number(log.sources?.recycleWater) || Math.round((log.totalWithdrawal || 0) * 0.09)), 0);
+    const totalProdKg = filteredLogs.reduce((sum, log) => sum + (Number(log.productionKg) || 0), 0);
+    const totalGroundwater = filteredLogs.reduce((sum, log) => sum + (Number(log.sources?.groundwater) || 0), 0);
+    const totalRain = filteredLogs.reduce((sum, log) => sum + (Number(log.sources?.rainWater) || 0), 0);
+    const totalRecycle = filteredLogs.reduce((sum, log) => sum + (Number(log.sources?.recycleWater) || 0), 0);
 
     const waterIntensity = totalProdKg > 0 ? ((totalWithdrawal * 1000) / totalProdKg).toFixed(1) : "0.0";
-    const gwRatio = totalWithdrawal > 0 ? ((totalGroundwater / totalWithdrawal) * 100).toFixed(1) : "65.0";
-    const altRatio = totalWithdrawal > 0 ? (((totalRain + totalRecycle) / totalWithdrawal) * 100).toFixed(1) : "17.0";
+    const gwRatio = totalWithdrawal > 0 ? ((totalGroundwater / totalWithdrawal) * 100).toFixed(1) : "0.0";
+    const altRatio = totalWithdrawal > 0 ? (((totalRain + totalRecycle) / totalWithdrawal) * 100).toFixed(1) : "0.0";
 
     return {
       totalWithdrawal,
@@ -162,21 +162,58 @@ export default function EnterpriseWaterPortal() {
     let gw = 0, warpo = 0, rain = 0, recycle = 0, surface = 0;
     filteredLogs.forEach((log) => {
       const s = log.sources;
-      const tw = log.totalWithdrawal || 0;
-      gw += s?.groundwater ?? Math.round(tw * 0.65);
-      warpo += s?.warpoDwasa ?? Math.round(tw * 0.15);
-      rain += s?.rainWater ?? Math.round(tw * 0.08);
-      recycle += s?.recycleWater ?? Math.round(tw * 0.09);
-      surface += s?.surfaceWater ?? Math.round(tw * 0.03);
+      gw += Number(s?.groundwater) || 0;
+      warpo += Number(s?.warpoDwasa) || 0;
+      rain += Number(s?.rainWater) || 0;
+      recycle += Number(s?.recycleWater) || 0;
+      surface += Number(s?.surfaceWater) || 0;
     });
 
     return [
-      { name: "Groundwater", value: gw || 3250 },
-      { name: "WARPO / DWASA", value: warpo || 750 },
-      { name: "Rain Water", value: rain || 400 },
-      { name: "Recycle Water", value: recycle || 450 },
-      { name: "Surface Water", value: surface || 150 },
+      { name: "Groundwater", value: gw },
+      { name: "WARPO / DWASA", value: warpo },
+      { name: "Rain Water", value: rain },
+      { name: "Recycle Water", value: recycle },
+      { name: "Surface Water", value: surface },
     ];
+  }, [filteredLogs]);
+
+  // Dynamic Departmental Breakdown Summary (Section 4)
+  const deptSummary = useMemo(() => {
+    let boiler = 0, cooling = 0, sanitation = 0, dyeing = 0, washing = 0, printing = 0;
+    filteredLogs.forEach((l: any) => {
+      boiler += Number(l.departments?.utilityBoilerSteam) || 0;
+      cooling += Number(l.departments?.utilityCooling) || 0;
+      sanitation += (Number(l.departments?.domesticToiletCanteen) || 0) + (Number(l.departments?.domesticDiningDrinking) || 0);
+      dyeing += Number(l.departments?.processDyeing) || 0;
+      washing += Number(l.departments?.processWashing) || 0;
+      printing += Number(l.departments?.processPrinting) || 0;
+    });
+    return { boiler, cooling, sanitation, dyeing, washing, printing };
+  }, [filteredLogs]);
+
+  // Dynamic Circularity Summary (Section 5)
+  const circularitySummary = useMemo(() => {
+    let ro = 0, rain = 0, lowLiquorSavings = 0, count = 0;
+    filteredLogs.forEach((l: any) => {
+      ro += Number(l.circularity?.roRecycledVolume) || 0;
+      rain += Number(l.circularity?.rainwaterHarvested) || 0;
+      if (l.circularity?.lowLiquorSavings) {
+        lowLiquorSavings += Number(l.circularity.lowLiquorSavings);
+        count++;
+      }
+    });
+    const avgSaving = count > 0 ? (lowLiquorSavings / count).toFixed(1) : "0";
+    return { ro, rain, avgSaving };
+  }, [filteredLogs]);
+
+  // Dynamic Regulatory & Compliance Summary (Section 6)
+  const complianceSummary = useMemo(() => {
+    if (filteredLogs.length === 0) return { coverage: 0, higgScore: 0 };
+    const latestLog = filteredLogs[0];
+    const coverage = latestLog.regulatory?.digitalSubmeteringCoverage ?? 0;
+    const higgScore = latestLog.regulatory?.higgFemScore ?? 0;
+    return { coverage, higgScore };
   }, [filteredLogs]);
 
   // Monthly Consumption Bar Chart Data
@@ -186,10 +223,10 @@ export default function EnterpriseWaterPortal() {
       const tw = log.totalWithdrawal || 0;
       return {
         name: log.month ? log.month.substring(0, 3) : "Mo",
-        Groundwater: s?.groundwater ?? Math.round(tw * 0.65),
-        Municipal: s?.warpoDwasa ?? Math.round(tw * 0.15),
-        Rainwater: s?.rainWater ?? Math.round(tw * 0.08),
-        Recycled: s?.recycleWater ?? Math.round(tw * 0.09),
+        Groundwater: Number(s?.groundwater) || 0,
+        Municipal: Number(s?.warpoDwasa) || 0,
+        Rainwater: Number(s?.rainWater) || 0,
+        Recycled: Number(s?.recycleWater) || 0,
         Total: tw
       };
     });
@@ -199,11 +236,11 @@ export default function EnterpriseWaterPortal() {
   const goodsRatioBenchmark = useMemo(() => {
     switch (selectedGoodsType) {
       case "fabric_washing":
-        return { excellent: 41, good: 56, title: "Fabric Washing", current: kpis.waterIntensity || 44 };
+        return { excellent: 41, good: 56, title: "Fabric Washing", current: kpis.waterIntensity };
       case "denim":
-        return { excellent: 65, good: 93, title: "Denim", current: kpis.waterIntensity || 62 };
+        return { excellent: 65, good: 93, title: "Denim", current: kpis.waterIntensity };
       case "garment":
-        return { excellent: 46, good: 63, title: "Garment", current: kpis.waterIntensity || 48 };
+        return { excellent: 46, good: 63, title: "Garment", current: kpis.waterIntensity };
     }
   }, [selectedGoodsType, kpis.waterIntensity]);
 
@@ -236,7 +273,7 @@ export default function EnterpriseWaterPortal() {
     const totalProd = dyeing + washing + printing + boiler + cooling;
     const totalDomestic = toiletCanteen + diningDrinking;
 
-    const prodKg = Number(formProductionKg) || 50000;
+    const prodKg = Number(formProductionKg) || 0;
     const calculatedIntensity = prodKg > 0 ? Number(((totalWith * 1000) / prodKg).toFixed(2)) : 0;
     const calculatedGwRatio = totalWith > 0 ? Number(((gw / totalWith) * 100).toFixed(2)) : 0;
     const calculatedAltRatio = totalWith > 0 ? Number((((rain + recycle) / totalWith) * 100).toFixed(2)) : 0;
@@ -273,21 +310,21 @@ export default function EnterpriseWaterPortal() {
         domesticDiningDrinking: diningDrinking,
       },
       circularity: {
-        roRecycledVolume: Number(formRoRecycled) || 2500,
-        rainwaterHarvested: Number(formRainHarvested) || 1100,
-        lowLiquorSavings: Number(formLowLiquorSavings) || 12,
-        lowLiquorReductionPercent: 18,
+        roRecycledVolume: Number(formRoRecycled) || 0,
+        rainwaterHarvested: Number(formRainHarvested) || 0,
+        lowLiquorSavings: Number(formLowLiquorSavings) || 0,
+        lowLiquorReductionPercent: Number(formLowLiquorSavings) ? 18 : 0,
       },
       regulatory: {
         groundwaterLicenseStatus: "Active" as const,
-        digitalSubmeteringCoverage: Number(formSubmeteringCoverage) || 92,
-        higgFemScore: Number(formHiggScore) || 88,
+        digitalSubmeteringCoverage: Number(formSubmeteringCoverage) || 0,
+        higgFemScore: Number(formHiggScore) || 0,
         isDataLoggedVerified: true,
       },
       flowmeters: [
-        { meterName: "Flowmeter 01 - Deep Tubewell", previous: 12400, present: 14200, difference: 1800 },
-        { meterName: "Flowmeter 02 - Process Inlet", previous: 8900, present: 10450, difference: 1550 },
-        { meterName: "Flowmeter 03 - RO Recovery Line", previous: 3400, present: 4500, difference: 1100 },
+        { meterName: "Flowmeter 01 - Deep Tubewell", previous: 0, present: gw, difference: gw },
+        { meterName: "Flowmeter 02 - Process Inlet", previous: 0, present: totalProd, difference: totalProd },
+        { meterName: "Flowmeter 03 - RO Recovery Line", previous: 0, present: recycle, difference: recycle },
       ],
       withdrawals: [{ previous: 0, present: totalWith, difference: totalWith }],
       boilers: [{ previous: 0, present: boiler, difference: boiler }]
@@ -392,17 +429,21 @@ export default function EnterpriseWaterPortal() {
               </select>
             </div>
 
-            {/* Plant Selector */}
-            <div className="hidden lg:flex items-center gap-1.5 bg-background/80 backdrop-blur-md px-3 py-2 rounded-xl border border-border/80 shadow-sm text-xs font-semibold">
+            {/* Facilities Type Selector */}
+            <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur-md px-3 py-2 rounded-xl border border-border/80 shadow-sm text-xs font-semibold">
               <Building2 className="w-3.5 h-3.5 text-teal-600" />
+              <span className="text-muted-foreground whitespace-nowrap">Facilities Type:</span>
               <select
                 value={selectedPlant}
                 onChange={(e) => setSelectedPlant(e.target.value)}
-                className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+                className="bg-transparent text-foreground font-bold focus:outline-none cursor-pointer"
+                style={{ colorScheme: "dark" }}
               >
-                <option value="Apex Unit 1 (Dyeing & Washing)">Unit 1 - Dyeing & Washing</option>
-                <option value="Apex Unit 2 (Denim & Garments)">Unit 2 - Denim & Garments</option>
-                <option value="Consolidated Facility">All Facilities (Consolidated)</option>
+                <option value="All Facilities" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Facilities</option>
+                <option value="Cut to Pack" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Cut to Pack</option>
+                <option value="Washing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Washing</option>
+                <option value="Dyeing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Dyeing</option>
+                <option value="Printing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">Printing</option>
               </select>
             </div>
 
@@ -664,7 +705,7 @@ export default function EnterpriseWaterPortal() {
               {/* Process Water Dropdown Selector */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 bg-background border border-border/80 px-3 py-1.5 rounded-xl shadow-sm text-xs font-semibold">
-                  <span className="text-muted-foreground">Process Water:</span>
+                  <span className="text-muted-foreground">Water Use Area:</span>
                   <select
                     value={selectedProcessType}
                     onChange={(e) => setSelectedProcessType(e.target.value as any)}
@@ -673,10 +714,14 @@ export default function EnterpriseWaterPortal() {
                     <option value="Dyeing">Dyeing Department</option>
                     <option value="Washing">Washing Department</option>
                     <option value="Printing">Printing Department</option>
+                    <option value="Utility">Utility Department</option>
+                    <option value="Garments">Garments Department</option>
+                    
+
                   </select>
                 </div>
 
-                <div className="flex items-center gap-2 bg-background border border-border/80 px-3 py-1.5 rounded-xl shadow-sm text-xs font-semibold">
+                {/* <div className="flex items-center gap-2 bg-background border border-border/80 px-3 py-1.5 rounded-xl shadow-sm text-xs font-semibold">
                   <span className="text-muted-foreground">Goods Type:</span>
                   <select
                     value={selectedGoodsType}
@@ -687,7 +732,7 @@ export default function EnterpriseWaterPortal() {
                     <option value="fabric_washing">Fabric Washing</option>
                     <option value="garment">Garment</option>
                   </select>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -762,15 +807,15 @@ export default function EnterpriseWaterPortal() {
                 <div className="p-3.5 rounded-xl bg-background/80 border border-border/60 space-y-2 text-xs font-semibold">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Boiler Steam Generation:</span>
-                    <span className="font-bold text-foreground">450 m³</span>
+                    <span className="font-bold text-foreground">{deptSummary.boiler.toLocaleString()} m³</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Cooling Purpose Use:</span>
-                    <span className="font-bold text-foreground">200 m³</span>
+                    <span className="font-bold text-foreground">{deptSummary.cooling.toLocaleString()} m³</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Toilet & Canteen Sanitation:</span>
-                    <span className="font-bold text-foreground">350 m³</span>
+                    <span className="font-bold text-foreground">{deptSummary.sanitation.toLocaleString()} m³</span>
                   </div>
                 </div>
               </div>
@@ -797,8 +842,8 @@ export default function EnterpriseWaterPortal() {
                 </div>
                 <h4 className="text-base font-bold text-foreground">RO Water Recycling Plant</h4>
                 <div className="mt-3 flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-emerald-600">2,500</span>
-                  <span className="text-xs font-bold text-muted-foreground">m³ / month Reused</span>
+                  <span className="text-3xl font-black text-emerald-600">{circularitySummary.ro.toLocaleString()}</span>
+                  <span className="text-xs font-bold text-muted-foreground">m³ Reused</span>
                 </div>
                 <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80 mt-2 font-semibold">
                   ↪ Passes Back to Dyeing Process
@@ -815,8 +860,8 @@ export default function EnterpriseWaterPortal() {
                 </div>
                 <h4 className="text-base font-bold text-foreground">Rain Water Harvesting System</h4>
                 <div className="mt-3 flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-cyan-600">1,100</span>
-                  <span className="text-xs font-bold text-muted-foreground">m³ / month Collected</span>
+                  <span className="text-3xl font-black text-cyan-600">{circularitySummary.rain.toLocaleString()}</span>
+                  <span className="text-xs font-bold text-muted-foreground">m³ Collected</span>
                 </div>
                 <p className="text-xs text-cyan-700/80 dark:text-cyan-300/80 mt-2 font-semibold">
                   ↪ Used for Toilet Flush & Gardening
@@ -833,11 +878,11 @@ export default function EnterpriseWaterPortal() {
                 </div>
                 <h4 className="text-base font-bold text-foreground">Low Liquor Ratio Dyeing Machine</h4>
                 <div className="mt-3 flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-blue-600">Save 12</span>
+                  <span className="text-3xl font-black text-blue-600">Save {circularitySummary.avgSaving}</span>
                   <span className="text-xs font-bold text-muted-foreground">Liters / Kg</span>
                 </div>
                 <p className="text-xs text-blue-700/80 dark:text-blue-300/80 mt-2 font-semibold">
-                  ↪ 18% Total Reduction Achieved
+                  ↪ Eco-optimization Achieved
                 </p>
                 <div className="mt-4 text-[11px] font-bold px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-600 inline-block">
                   High-Efficiency Liquor Circulation
@@ -881,7 +926,7 @@ export default function EnterpriseWaterPortal() {
                     <p className="font-bold text-foreground">Digital Sub-metering Coverage</p>
                     <p className="text-[11px] text-muted-foreground">Automated telemetry monitoring</p>
                   </div>
-                  <span className="text-sm font-extrabold text-teal-600">92% Coverage</span>
+                  <span className="text-sm font-extrabold text-teal-600">{complianceSummary.coverage}% Coverage</span>
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-muted/30 flex justify-between items-center">
@@ -905,7 +950,7 @@ export default function EnterpriseWaterPortal() {
                     <p className="text-[11px] text-muted-foreground">Annual Verification verified by BV</p>
                   </div>
                   <span className="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-600 font-extrabold">
-                    88 / 100
+                    {complianceSummary.higgScore} / 100
                   </span>
                 </div>
 

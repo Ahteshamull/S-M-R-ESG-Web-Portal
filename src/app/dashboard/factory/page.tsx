@@ -118,7 +118,7 @@ export default function FactoryProfilePage() {
     );
   }
 
-  const buyers = profile?.keyBuyers || ["H&M", "ZARA", "M&S"];
+  const buyers = profile?.keyBuyers || [];
   const certifications = profile?.certifications || [];
 
   return (
@@ -202,13 +202,17 @@ export default function FactoryProfilePage() {
 
             <div className="glass-card rounded-xl p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center"><Briefcase className="w-5 h-5 mr-2 text-emerald-600" /> Key Buyers</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {buyers.map((buyer: string, idx: number) => (
-                  <div key={idx} className="h-20 bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-200/50 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300 rounded-lg flex items-center justify-center font-bold">
-                    {buyer}
-                  </div>
-                ))}
-              </div>
+              {buyers.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {buyers.map((buyer: string, idx: number) => (
+                    <div key={idx} className="h-20 bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-200/50 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300 rounded-lg flex items-center justify-center font-bold">
+                      {buyer}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground italic">No key buyers listed in factory profile.</p>
+              )}
             </div>
           </div>
 

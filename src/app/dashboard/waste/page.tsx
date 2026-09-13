@@ -1,13 +1,76 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
-import { Trash2, Recycle, ClipboardList, PackageSearch, Factory, ChevronRight } from "lucide-react";
+import { Trash2, Recycle, ClipboardList, PackageSearch, Factory, ChevronRight, Loader2 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useGetWasteInventoryQuery, useGetWasteRecycleQuery, useGetWasteTrackingQuery } from "@/lib/redux/slices/wasteApi";
 
-const data: any[] = [];
 const COLORS = ['#10b981', '#3b82f6', '#f43f5e'];
 
 export default function WasteDashboardHub() {
+  const { data: inventoryData = [], isLoading: isInvLoading } = useGetWasteInventoryQuery();
+  const { data: recycleData = [], isLoading: isRecLoading } = useGetWasteRecycleQuery();
+  const { data: trackingData = [], isLoading: isTrackLoading } = useGetWasteTrackingQuery();
+
+  const isLoading = isInvLoading || isRecLoading || isTrackLoading;
+
+  // Calculate real general waste (kg)
+  const totalGeneralWaste = useMemo(() => {
+    const invNonHaz = inventoryData
+      .filter((item: any) => item.wasteClassification === 'Non-Hazardous')
+      .reduce((sum: number, item: any) => sum + (Number(item.quantity) || 0), 0);
+
+    const trackNonHaz = trackingData.reduce((sum: number, entry: any) => {
+      if (entry.nonHaz && typeof entry.nonHaz === 'object') {
+        return sum + Object.values(entry.nonHaz).reduce((s: number, v: any) => s + (Number(v) || 0), 0);
+      }
+      return sum;
+    }, 0);
+
+    return invNonHaz + trackNonHaz;
+  }, [inventoryData, trackingData]);
+
+  // Calculate real recycled waste (kg)
+  const totalRecycledWaste = useMemo(() => {
+    return recycleData.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 0), 0);
+  }, [recycleData]);
+
+  // Calculate real hazardous waste (kg)
+  const totalHazardousWaste = useMemo(() => {
+    const invHaz = inventoryData
+      .filter((item: any) => item.wasteClassification === 'Hazardous')
+      .reduce((sum: number, item: any) => sum + (Number(item.quantity) || 0), 0);
+
+    const trackHaz = trackingData.reduce((sum: number, entry: any) => {
+      if (entry.haz && typeof entry.haz === 'object') {
+        return sum + Object.values(entry.haz).reduce((s: number, v: any) => s + (Number(v) || 0), 0);
+      }
+      return sum;
+    }, 0);
+
+    return invHaz + trackHaz;
+  }, [inventoryData, trackingData]);
+
+  const chartData = useMemo(() => {
+    return [
+      { name: 'Non-Hazardous', value: Number(totalGeneralWaste.toFixed(1)) },
+      { name: 'Recycled', value: Number(totalRecycledWaste.toFixed(1)) },
+      { name: 'Hazardous', value: Number(totalHazardousWaste.toFixed(1)) },
+    ].filter((item) => item.value > 0);
+  }, [totalGeneralWaste, totalRecycledWaste, totalHazardousWaste]);
+
+  const formatQuantity = (val: number) => {
+    if (val >= 1000) {
+      return { num: (val / 1000).toFixed(2), unit: 'Tons' };
+    }
+    return { num: val.toFixed(1), unit: 'kg' };
+  };
+
+  const generalFormatted = formatQuantity(totalGeneralWaste);
+  const recycledFormatted = formatQuantity(totalRecycledWaste);
+  const hazFormatted = formatQuantity(totalHazardousWaste);
+
   return (
     <div className="space-y-8 pb-10">
       {/* Header Section */}
@@ -73,31 +136,44 @@ export default function WasteDashboardHub() {
           <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
             <Factory className="w-5 h-5 text-emerald-600" /> Waste Generation Distribution
           </h3>
-          <div className="w-full h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={data}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={5}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  itemStyle={{ color: '#1f2937', fontWeight: 600 }}
-                  formatter={(value) => `${value} kg`}
-                />
-                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 500 }} />
-              </PieChart>
-            </ResponsiveContainer>
+          <div className="w-full h-[250px] flex items-center justify-center">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center text-muted-foreground">
+                <Loader2 className="w-6 h-6 animate-spin text-emerald-600 mb-2" />
+                <span className="text-xs">Loading waste distribution...</span>
+              </div>
+            ) : chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    itemStyle={{ color: '#1f2937', fontWeight: 600 }}
+                    formatter={(value) => `${value} kg`}
+                  />
+                  <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 500 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center p-6 text-muted-foreground">
+                <PackageSearch className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                <p className="text-xs font-medium">No waste entries recorded yet.</p>
+                <p className="text-[11px] mt-1 opacity-75">Add tracking, inventory, or recycle records to visualize distribution.</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -107,7 +183,7 @@ export default function WasteDashboardHub() {
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-xs font-semibold text-emerald-700/70 dark:text-emerald-400/70 mb-1 uppercase tracking-wider">Total General Waste (YTD)</p>
-                  <p className="text-2xl font-black text-emerald-700 dark:text-emerald-400">4.2 <span className="text-sm font-medium">Tons</span></p>
+                  <p className="text-2xl font-black text-emerald-700 dark:text-emerald-400">{generalFormatted.num} <span className="text-sm font-medium">{generalFormatted.unit}</span></p>
                 </div>
                 <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-600">
                   <Trash2 className="w-6 h-6" />
@@ -118,7 +194,7 @@ export default function WasteDashboardHub() {
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-xs font-semibold text-blue-700/70 dark:text-blue-400/70 mb-1 uppercase tracking-wider">Total Recycled (YTD)</p>
-                  <p className="text-2xl font-black text-blue-700 dark:text-blue-400">2.8 <span className="text-sm font-medium">Tons</span></p>
+                  <p className="text-2xl font-black text-blue-700 dark:text-blue-400">{recycledFormatted.num} <span className="text-sm font-medium">{recycledFormatted.unit}</span></p>
                 </div>
                 <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-600">
                   <Recycle className="w-6 h-6" />
@@ -129,7 +205,7 @@ export default function WasteDashboardHub() {
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-xs font-semibold text-rose-700/70 dark:text-rose-400/70 mb-1 uppercase tracking-wider">Total Hazardous (YTD)</p>
-                  <p className="text-2xl font-black text-rose-700 dark:text-rose-400">120 <span className="text-sm font-medium">kg</span></p>
+                  <p className="text-2xl font-black text-rose-700 dark:text-rose-400">{hazFormatted.num} <span className="text-sm font-medium">{hazFormatted.unit}</span></p>
                 </div>
                 <div className="p-3 bg-rose-500/10 rounded-2xl text-rose-600">
                   <Factory className="w-6 h-6" />

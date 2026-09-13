@@ -78,8 +78,12 @@ export default function WorkerSocialPage() {
 
   const grievances = data?.grievances || [];
   const openCount = data?.openGrievancesCount || 0;
-  const activeCommittees = data?.activeCommitteesCount || 4;
-  const maternityCount = data?.maternityLeavesCount || 45;
+  const activeCommittees = data?.activeCommitteesCount ?? 0;
+  const maternityCount = data?.maternityLeavesCount ?? 0;
+
+  const resolvedCount = grievances.filter((g: any) => g.status === "Resolved").length;
+  const totalGrievances = grievances.length;
+  const resolutionRate = totalGrievances > 0 ? Math.round((resolvedCount / totalGrievances) * 100) : 0;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -155,7 +159,9 @@ export default function WorkerSocialPage() {
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <span className="text-muted-foreground">Resolution rate: 98% (SLA met)</span>
+            <span className="text-muted-foreground">
+              Resolution rate: {resolutionRate}% {totalGrievances > 0 && resolutionRate >= 90 ? "(SLA met)" : totalGrievances > 0 ? "(Active)" : "(No records)"}
+            </span>
           </div>
         </div>
       </div>

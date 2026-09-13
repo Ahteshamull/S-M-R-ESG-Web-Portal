@@ -33,23 +33,6 @@ export interface InventoryRecord {
   remarks: string;
 }
 
-const initialData: InventoryRecord[] = [
-  { 
-    id: '1', wasteName: 'Materials', sourceOfWaste: 'Production floor', wasteClassification: 'Non-Hazardous', quantity: 23124, unit: 'Kg',
-    labeling: 'No', identification: 'Yes', ppe: 'No', wasteStorageRequirement: 'Store separately', locationOfStorage: 'Wastage Store Room',
-    wasteDisposalRoute: 'Handover to waste contractor', applicableLegalPermit: 'No', onSiteTreatmentMethod: 'N/A', quantityOfRecycledWaste: 'N/A',
-    approvedWasteContractor: 'URS AB Enterprise', dateOfLastWasteHandover: '21.01.24', challanNo: '3093', 
-    emergencyContactPerson: 'Saiful Islam, Manager (HR,Compliance)', checkedBy: 'Shahnayaz Hossain Joy, Executive-Environment', checkedOn: '30/09/2024', remarks: ''
-  },
-  { 
-    id: '2', wasteName: 'Battery', sourceOfWaste: 'Different Sector', wasteClassification: 'Hazardous', quantity: 0, unit: 'Kg',
-    labeling: 'Yes', identification: 'Yes', ppe: 'Yes', wasteStorageRequirement: 'Store separately', locationOfStorage: 'Wastage Store Room',
-    wasteDisposalRoute: 'Handover to waste contractor', applicableLegalPermit: 'No', onSiteTreatmentMethod: 'N/A', quantityOfRecycledWaste: 'N/A',
-    approvedWasteContractor: 'URS AB Enterprise', dateOfLastWasteHandover: '21.01.24', challanNo: '3093', 
-    emergencyContactPerson: 'Saiful Islam, Manager (HR,Compliance)', checkedBy: 'Shahnayaz Hossain Joy, Executive-Environment', checkedOn: '30/09/2024', remarks: ''
-  }
-];
-
 import { useGetWasteInventoryQuery, useCreateWasteInventoryMutation } from "@/lib/redux/slices/wasteApi";
 
 export default function WasteInventoryPage() {

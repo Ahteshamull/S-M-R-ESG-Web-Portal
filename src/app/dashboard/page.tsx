@@ -60,12 +60,26 @@ export default function DashboardOverview() {
   const esgTrendsData = summary?.trends || [];
   const alerts = summary?.alerts || [];
 
+  const comparisons = (esgTrendsData.length >= 2) ? (() => {
+    const prev = esgTrendsData[esgTrendsData.length - 2];
+    const curr = esgTrendsData[esgTrendsData.length - 1];
+    const calcChange = (currVal: number, prevVal: number) => {
+      if (prevVal === 0) return currVal > 0 ? 100 : 0;
+      return Number((((currVal - prevVal) / prevVal) * 100).toFixed(1));
+    };
+    return {
+      energyDiff: calcChange(curr.energy || 0, prev.energy || 0),
+      waterDiff: calcChange(curr.water || 0, prev.water || 0),
+      carbonDiff: calcChange(curr.carbon || 0, prev.carbon || 0),
+    };
+  })() : { energyDiff: null, waterDiff: null, carbonDiff: null };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard Overview</h1>
-          <p className="text-sm text-muted-foreground mt-1">Here&apos;s your factory&apos;s ESG performance at a glance.</p>
+          <h1 className="text-2xl font-bold tracking-tight">ESG Performance Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">Real-time overview of your sustainability metrics and compliance status.</p>
         </div>
         <div className="flex gap-2">
           <button 
@@ -97,11 +111,17 @@ export default function DashboardOverview() {
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <span className="flex items-center text-green-600 font-medium">
-              <ArrowDownRight className="w-4 h-4 mr-1" />
-              12.5%
-            </span>
-            <span className="text-muted-foreground ml-2">vs last month</span>
+            {comparisons.energyDiff !== null ? (
+              <>
+                <span className={cn("flex items-center font-medium", comparisons.energyDiff <= 0 ? "text-green-600" : "text-amber-600")}>
+                  {comparisons.energyDiff <= 0 ? <ArrowDownRight className="w-4 h-4 mr-1" /> : <ArrowUpRight className="w-4 h-4 mr-1" />}
+                  {Math.abs(comparisons.energyDiff)}%
+                </span>
+                <span className="text-muted-foreground ml-2">vs prev logged month</span>
+              </>
+            ) : (
+              <span className="text-xs text-muted-foreground">Logged electricity usage</span>
+            )}
           </div>
         </div>
 
@@ -110,18 +130,24 @@ export default function DashboardOverview() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Water Usage</p>
-              <h3 className="text-2xl font-bold mt-1">{kpis.totalWater.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">Liters</span></h3>
+              <h3 className="text-2xl font-bold mt-1">{kpis.totalWater.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">m³</span></h3>
             </div>
             <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
               <Droplets className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <span className="flex items-center text-red-600 font-medium">
-              <ArrowUpRight className="w-4 h-4 mr-1" />
-              4.2%
-            </span>
-            <span className="text-muted-foreground ml-2">vs last month</span>
+            {comparisons.waterDiff !== null ? (
+              <>
+                <span className={cn("flex items-center font-medium", comparisons.waterDiff <= 0 ? "text-green-600" : "text-amber-600")}>
+                  {comparisons.waterDiff <= 0 ? <ArrowDownRight className="w-4 h-4 mr-1" /> : <ArrowUpRight className="w-4 h-4 mr-1" />}
+                  {Math.abs(comparisons.waterDiff)}%
+                </span>
+                <span className="text-muted-foreground ml-2">vs prev logged month</span>
+              </>
+            ) : (
+              <span className="text-xs text-muted-foreground">Logged withdrawal</span>
+            )}
           </div>
         </div>
 
@@ -137,11 +163,17 @@ export default function DashboardOverview() {
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <span className="flex items-center text-green-600 font-medium">
-              <ArrowDownRight className="w-4 h-4 mr-1" />
-              8.1%
-            </span>
-            <span className="text-muted-foreground ml-2">vs last month</span>
+            {comparisons.carbonDiff !== null ? (
+              <>
+                <span className={cn("flex items-center font-medium", comparisons.carbonDiff <= 0 ? "text-green-600" : "text-amber-600")}>
+                  {comparisons.carbonDiff <= 0 ? <ArrowDownRight className="w-4 h-4 mr-1" /> : <ArrowUpRight className="w-4 h-4 mr-1" />}
+                  {Math.abs(comparisons.carbonDiff)}%
+                </span>
+                <span className="text-muted-foreground ml-2">vs prev logged month</span>
+              </>
+            ) : (
+              <span className="text-xs text-muted-foreground">Logged GHG emissions</span>
+            )}
           </div>
         </div>
 
@@ -157,11 +189,11 @@ export default function DashboardOverview() {
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <span className="flex items-center text-green-600 font-medium">
-              <ArrowUpRight className="w-4 h-4 mr-1" />
-              2.0 pts
+            <span className={cn("flex items-center font-medium", kpis.complianceScore >= 80 ? "text-green-600" : "text-amber-600")}>
+              <CheckCircle2 className="w-4 h-4 mr-1" />
+              {kpis.complianceScore >= 80 ? "Audit Ready" : "Requires Action"}
             </span>
-            <span className="text-muted-foreground ml-2">vs last month</span>
+            <span className="text-muted-foreground ml-2">Live score</span>
           </div>
         </div>
       </div>

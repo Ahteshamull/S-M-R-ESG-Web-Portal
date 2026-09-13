@@ -14,9 +14,6 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const trendData: any[] = [];
-const targetData: any[] = [];
-
 type FactorType = { id: string; activity: string; unit: string; factor: number; type: string; scopeName?: string; scopeId?: "1" | "2" | "3" };
 
 export default function CarbonPage() {
@@ -24,6 +21,14 @@ export default function CarbonPage() {
   const { data: carbonData, isLoading } = useGetCarbonSummaryQuery();
   const [createCarbonEntry] = useCreateCarbonEntryMutation();
   const [updateEmissionFactor] = useUpdateEmissionFactorMutation();
+
+  const trendData = useMemo(() => {
+    return (carbonData as any)?.trends || [];
+  }, [carbonData]);
+
+  const targetData = useMemo(() => {
+    return (carbonData as any)?.targetData || [];
+  }, [carbonData]);
   
   // State for Factors
   const [isEditFactorModalOpen, setIsEditFactorModalOpen] = useState(false);
