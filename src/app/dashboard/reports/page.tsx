@@ -195,11 +195,16 @@ Status: Verified & Validated for Audit Submission
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
             className="text-xs font-medium bg-muted/60 border border-border/80 rounded-lg px-2.5 py-1.5 focus:ring-1 focus:ring-emerald-500 outline-none"
+            style={{ colorScheme: "dark" }}
           >
-            <option value="all">All Years</option>
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
+            <option value="all" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Years</option>
+            <option value="2030" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2030</option>
+            <option value="2029" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2029</option>
+            <option value="2028" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2028</option>
+            <option value="2027" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2027</option>
+            <option value="2026" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2026</option>
+            <option value="2025" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2025</option>
+            <option value="2024" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2024</option>
           </select>
 
           <select

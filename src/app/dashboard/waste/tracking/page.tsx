@@ -19,7 +19,7 @@ const initialNonHazCols = ['Jhut', 'Paper cartoon', 'Paper Roll', 'Poly Bag & Ga
 const initialHazCols = ['Empty containers (cleaning/sanitizing)', 'Batteries', 'Chemical drum (steel)', 'Chemical drum (plastic)', 'Fluorescent light bulb', 'Ink cartridges', 'Electronic waste'];
 
 const WASTE_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const WASTE_YEARS = [2026, 2025, 2024];
+const WASTE_YEARS = [2030, 2029, 2028, 2027, 2026, 2025, 2024];
 
 import { useGetWasteTrackingQuery, useCreateWasteTrackingMutation } from "@/lib/redux/slices/wasteApi";
 
@@ -129,10 +129,15 @@ export default function WasteGenerationPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value === "All" ? "All" : Number(e.target.value))}
-              className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer font-bold"
+              style={{ colorScheme: "dark" }}
             >
-              <option value="All">All Years</option>
-              {WASTE_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+              <option value="All" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Years</option>
+              {WASTE_YEARS.map(y => (
+                <option key={y} value={y} className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+                  {y}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -142,10 +147,15 @@ export default function WasteGenerationPage() {
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer font-bold"
+              style={{ colorScheme: "dark" }}
             >
-              <option value="All">All Months (YTD)</option>
-              {WASTE_MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+              <option value="All" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Months (YTD)</option>
+              {WASTE_MONTHS.map(m => (
+                <option key={m} value={m} className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+                  {m}
+                </option>
+              ))}
             </select>
           </div>
 

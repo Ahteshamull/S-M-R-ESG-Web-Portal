@@ -213,6 +213,10 @@ export default function ChemicalInventoryPage() {
         }
       });
     });
+    yearsSet.add("2030");
+    yearsSet.add("2029");
+    yearsSet.add("2028");
+    yearsSet.add("2027");
     yearsSet.add("2026");
     yearsSet.add("2025");
     yearsSet.add("2024");

@@ -398,11 +398,16 @@ export default function InCheckReportPage() {
               value={evalYear}
               onChange={(e) => setEvalYear(e.target.value)}
               className="px-3 py-1.5 rounded-xl text-xs sm:text-sm bg-background border border-border text-foreground font-medium focus:ring-2 focus:ring-amber-500/40 cursor-pointer"
+              style={{ colorScheme: "dark" }}
             >
-              <option value="ALL">All Years</option>
-              <option value="2026">2026</option>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
+              <option value="ALL" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Years</option>
+              <option value="2030" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2030</option>
+              <option value="2029" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2029</option>
+              <option value="2028" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2028</option>
+              <option value="2027" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2027</option>
+              <option value="2026" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2026</option>
+              <option value="2025" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2025</option>
+              <option value="2024" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">2024</option>
             </select>
           </div>
         </div>

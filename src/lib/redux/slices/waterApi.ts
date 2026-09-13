@@ -45,11 +45,23 @@ export const waterApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Water', id: 'LIST' }],
     }),
+    getWaterDepartmentTelemetry: builder.query<any, { area: string; year?: number; month?: string }>({
+      query: ({ area, year, month }) => {
+        const params = new URLSearchParams();
+        params.append('area', area);
+        if (year) params.append('year', year.toString());
+        if (month && month !== 'All') params.append('month', month);
+        return `/water/department-telemetry?${params.toString()}`;
+      },
+      transformResponse: (response: any) => response.data,
+      providesTags: [{ type: 'Water', id: 'TELEMETRY' }],
+    }),
   }),
 });
 
 export const {
   useGetWaterLogsQuery,
+  useGetWaterDepartmentTelemetryQuery,
   useCreateWaterLogMutation,
   useUpdateWaterLogMutation,
   useDeleteWaterLogMutation,

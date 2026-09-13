@@ -22,7 +22,7 @@ interface EnergyLog {
 const initialData: EnergyLog[] = [];
 
 const ENERGY_MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const ENERGY_YEARS = [2026, 2025, 2024];
+const ENERGY_YEARS = [2030, 2029, 2028, 2027, 2026, 2025, 2024];
 
 export default function EnergyPage() {
   const { data: energyLogs = [], isLoading } = useGetEnergyLogsQuery();
@@ -102,10 +102,15 @@ export default function EnergyPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value === "All" ? "All" : Number(e.target.value))}
-              className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer font-bold"
+              style={{ colorScheme: "dark" }}
             >
-              <option value="All">All Years</option>
-              {ENERGY_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+              <option value="All" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Years</option>
+              {ENERGY_YEARS.map(y => (
+                <option key={y} value={y} className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+                  {y}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -115,10 +120,15 @@ export default function EnergyPage() {
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer font-bold"
+              style={{ colorScheme: "dark" }}
             >
-              <option value="All">All Months (YTD)</option>
-              {ENERGY_MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+              <option value="All" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Months (YTD)</option>
+              {ENERGY_MONTHS.map(m => (
+                <option key={m} value={m} className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+                  {m}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -407,19 +417,20 @@ export default function EnergyPage() {
                 value={logMonth} 
                 onChange={(e) => setLogMonth(e.target.value)}
                 className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/50 shadow-sm"
+                style={{ colorScheme: "dark" }}
               >
-                <option value="JAN">January</option>
-                <option value="FEB">February</option>
-                <option value="MAR">March</option>
-                <option value="APR">April</option>
-                <option value="MAY">May</option>
-                <option value="JUN">June</option>
-                <option value="JUL">July</option>
-                <option value="AUG">August</option>
-                <option value="SEP">September</option>
-                <option value="OCT">October</option>
-                <option value="NOV">November</option>
-                <option value="DEC">December</option>
+                <option value="JAN" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">January</option>
+                <option value="FEB" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">February</option>
+                <option value="MAR" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">March</option>
+                <option value="APR" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">April</option>
+                <option value="MAY" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">May</option>
+                <option value="JUN" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">June</option>
+                <option value="JUL" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">July</option>
+                <option value="AUG" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">August</option>
+                <option value="SEP" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">September</option>
+                <option value="OCT" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">October</option>
+                <option value="NOV" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">November</option>
+                <option value="DEC" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">December</option>
               </select>
             </div>
           </div>

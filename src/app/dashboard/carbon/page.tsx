@@ -127,7 +127,7 @@ export default function CarbonPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>("All");
 
   const CARBON_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const CARBON_YEARS = [2026, 2025, 2024];
+  const CARBON_YEARS = [2030, 2029, 2028, 2027, 2026, 2025, 2024];
 
   const handleDownloadReport = () => {
     toast.success("Generating Carbon Footprint Report (PDF)...");
@@ -149,9 +149,14 @@ export default function CarbonPage() {
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value === "All" ? "All" : Number(e.target.value))}
               className="bg-transparent text-foreground focus:outline-none cursor-pointer font-bold"
+              style={{ colorScheme: "dark" }}
             >
-              <option value="All">All Years</option>
-              {CARBON_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+              <option value="All" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Years</option>
+              {CARBON_YEARS.map(y => (
+                <option key={y} value={y} className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+                  {y}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -162,9 +167,14 @@ export default function CarbonPage() {
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="bg-transparent text-foreground focus:outline-none cursor-pointer font-bold"
+              style={{ colorScheme: "dark" }}
             >
-              <option value="All">All Months (YTD)</option>
-              {CARBON_MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+              <option value="All" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">All Months (YTD)</option>
+              {CARBON_MONTHS.map(m => (
+                <option key={m} value={m} className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+                  {m}
+                </option>
+              ))}
             </select>
           </div>
 
