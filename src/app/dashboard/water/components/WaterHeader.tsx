@@ -59,16 +59,15 @@ export const WaterHeader: React.FC<WaterHeaderProps> = ({
       {/* Top row: Title + Actions */}
       <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-5">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-600 dark:text-teal-400 text-[11px] font-bold uppercase tracking-wider">
-            <ShieldCheck className="w-3.5 h-3.5" /> Bureau Veritas &amp; Higg FEM Standards
-          </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-teal-600 via-emerald-600 to-cyan-500 dark:from-teal-300 dark:via-emerald-300 dark:to-cyan-200 bg-clip-text text-transparent">
-            Enterprise Water Management Portal
+            Water Management Portal
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground font-medium flex items-center gap-2">
             <span>MG Shirtex Sustainability Tracker</span>
             <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
-            <span className="text-teal-600 dark:text-teal-400 font-semibold">{selectedPlant}</span>
+            <span className="text-teal-600 dark:text-teal-400 font-semibold">
+              {selectedPlant}
+            </span>
           </p>
         </div>
 
@@ -79,15 +78,26 @@ export const WaterHeader: React.FC<WaterHeaderProps> = ({
             <Calendar className="w-3.5 h-3.5 text-teal-600 shrink-0" />
             <select
               value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value === "All" ? "All" : Number(e.target.value))}
+              onChange={(e) =>
+                setSelectedYear(
+                  e.target.value === "All" ? "All" : Number(e.target.value),
+                )
+              }
               className="bg-transparent text-foreground focus:outline-none cursor-pointer font-bold"
               style={{ colorScheme: "dark" }}
             >
-              <option value="All" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+              <option
+                value="All"
+                className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+              >
                 All Years
               </option>
               {YEARS.map((y) => (
-                <option key={y} value={y} className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+                <option
+                  key={y}
+                  value={y}
+                  className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+                >
                   {y}
                 </option>
               ))}
@@ -103,11 +113,18 @@ export const WaterHeader: React.FC<WaterHeaderProps> = ({
               className="bg-transparent text-foreground focus:outline-none cursor-pointer font-bold"
               style={{ colorScheme: "dark" }}
             >
-              <option value="All" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+              <option
+                value="All"
+                className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+              >
                 All Months
               </option>
               {MONTHS.map((m) => (
-                <option key={m} value={m} className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+                <option
+                  key={m}
+                  value={m}
+                  className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+                >
                   {m}
                 </option>
               ))}
@@ -123,25 +140,46 @@ export const WaterHeader: React.FC<WaterHeaderProps> = ({
               className="bg-transparent text-foreground font-bold focus:outline-none cursor-pointer"
               style={{ colorScheme: "dark" }}
             >
-              <option value="Plot 104-106, DEPZ Extension" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+              <option
+                value="Plot 104-106, DEPZ Extension"
+                className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+              >
                 Plot 104-106, DEPZ Extension
               </option>
-              <option value="All Facilities" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+              <option
+                value="All Facilities"
+                className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+              >
                 All Facilities
               </option>
-              <option value="Washing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+              <option
+                value="Washing"
+                className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+              >
                 Washing
               </option>
-              <option value="Dyeing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+              <option
+                value="Dyeing"
+                className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+              >
                 Dyeing
               </option>
-              <option value="Printing" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+              <option
+                value="Printing"
+                className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+              >
                 Printing
               </option>
-              <option value="Utility" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+              <option
+                value="Utility"
+                className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+              >
                 Utility
               </option>
-              <option value="Garments (Cut to Pack)" className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
+              <option
+                value="Garments (Cut to Pack)"
+                className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white"
+              >
                 Garments (Cut to Pack)
               </option>
             </select>
