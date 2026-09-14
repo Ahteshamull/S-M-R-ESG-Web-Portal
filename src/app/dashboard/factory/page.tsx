@@ -12,7 +12,7 @@ import {
 } from "@/lib/redux/slices/factoryApi";
 
 export default function FactoryProfilePage() {
-  const { data: profile, isLoading } = useGetFactoryProfileQuery();
+  const { data: profile, isLoading, refetch } = useGetFactoryProfileQuery();
   const [updateFactoryProfile] = useUpdateFactoryProfileMutation();
   const [addFactoryCertification] = useAddFactoryCertificationMutation();
   const [deleteFactoryCertification] = useDeleteFactoryCertificationMutation();
@@ -72,6 +72,7 @@ export default function FactoryProfilePage() {
 
     if (!res.error) {
       toast.success("Factory profile updated successfully!");
+      await refetch();
     } else {
       const errorMsg = (res.error as any).data?.message || "Failed to update profile";
       toast.error(errorMsg);
@@ -94,6 +95,7 @@ export default function FactoryProfilePage() {
     if (!res.error) {
       toast.success("Certification added successfully!");
       setCertName(""); setCertValidTill(""); setCertStatus("Active");
+      await refetch();
     } else {
       const errorMsg = (res.error as any).data?.message || "Failed to add certification";
       toast.error(errorMsg);
@@ -104,6 +106,7 @@ export default function FactoryProfilePage() {
     const res = await deleteFactoryCertification(index);
     if (!res.error) {
       toast.success("Certification removed successfully!");
+      await refetch();
     } else {
       const errorMsg = (res.error as any).data?.message || "Failed to remove certification";
       toast.error(errorMsg);

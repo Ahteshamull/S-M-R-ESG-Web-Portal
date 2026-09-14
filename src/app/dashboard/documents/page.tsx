@@ -12,7 +12,7 @@ import {
 
 export default function DocumentsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: documents = [], isLoading } = useGetDocumentsQuery();
+  const { data: documents = [], isLoading, refetch } = useGetDocumentsQuery();
   const [uploadDocument] = useUploadDocumentMutation();
   const [deleteDocument] = useDeleteDocumentMutation();
 
@@ -37,6 +37,7 @@ export default function DocumentsPage() {
     if (!res.error) {
       toast.success("Document uploaded successfully!");
       setName(""); setCategory("Policies"); setFile(null);
+      await refetch();
     } else {
       const errorMsg = (res.error as any).data?.message || "Failed to upload document";
       toast.error(errorMsg);
@@ -47,6 +48,7 @@ export default function DocumentsPage() {
     const res = await deleteDocument(id);
     if (!res.error) {
       toast.success("Document deleted successfully!");
+      await refetch();
     } else {
       const errorMsg = (res.error as any).data?.message || "Failed to delete document";
       toast.error(errorMsg);

@@ -13,8 +13,8 @@ export default function DashboardLayout({
         <Topbar />
         <div suppressHydrationWarning className="flex w-full min-w-0 overflow-x-hidden">
           <Sidebar />
-          <main className="flex-1 p-3 sm:p-4 md:p-6 bg-muted/30 ml-0 md:ml-64 min-h-[calc(100vh-64px)] min-w-0 w-full md:max-w-[calc(100vw-16rem)] overflow-x-hidden">
-            <div className="w-full max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0">
+          <main className="flex-1 p-3 sm:p-5 md:p-6 lg:p-8 bg-muted/20 ml-0 md:ml-64 min-h-[calc(100vh-64px)] min-w-0 w-full md:w-[calc(100vw-16rem)] overflow-x-hidden flex flex-col">
+            <div className="w-full max-w-[1720px] mx-auto animate-in fade-in slide-in-from-bottom-3 duration-500 min-w-0 flex-1 flex flex-col">
               {children}
             </div>
           </main>

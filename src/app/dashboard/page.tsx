@@ -2,7 +2,7 @@
 
 import { 
   ArrowDownRight, ArrowUpRight, Cloud, Droplets, 
-  Zap, AlertTriangle, CheckCircle2, FileText, Loader2 
+  Zap, AlertTriangle, CheckCircle2, FileText, Loader2, RefreshCw 
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -20,7 +20,7 @@ function cn(...inputs: any[]) {
 
 export default function DashboardOverview() {
   const router = useRouter();
-  const { data: summary, isLoading } = useGetDashboardSummaryQuery();
+  const { data: summary, isLoading, refetch } = useGetDashboardSummaryQuery();
 
   const handleDownload = () => {
     const headers = ["ESG Metric", "Value", "Unit"];
@@ -81,7 +81,17 @@ export default function DashboardOverview() {
           <h1 className="text-2xl font-bold tracking-tight">ESG Performance Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">Real-time overview of your sustainability metrics and compliance status.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={async () => {
+              await refetch();
+              toast.success("ESG dashboard refreshed!");
+            }}
+            className="p-2 border border-border rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            title="Refresh Metrics"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
           <button 
             onClick={handleDownload}
             className="bg-emerald-50 border-emerald-200 text-emerald-800 border px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-100 transition-colors"

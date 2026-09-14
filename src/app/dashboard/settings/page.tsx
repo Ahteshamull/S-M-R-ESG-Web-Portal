@@ -11,7 +11,7 @@ import {
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
-  const { data: user, isLoading } = useGetMeQuery();
+  const { data: user, isLoading, refetch } = useGetMeQuery();
   const [updateProfile] = useUpdateProfileMutation();
   const [changePassword] = useChangePasswordMutation();
 
@@ -42,6 +42,7 @@ export default function SettingsPage() {
     const res = await updateProfile({ firstName, lastName, email, role });
     if (!res.error) {
       toast.success("Profile settings updated successfully!");
+      await refetch();
     } else {
       const errorMsg = (res.error as any).data?.message || "Failed to update profile";
       toast.error(errorMsg);
